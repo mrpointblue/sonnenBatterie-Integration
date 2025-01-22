@@ -4,14 +4,24 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 
 ## Features
 - Live power consumption and production data.
-- State of charge monitoring for the battery.
+- Deatiled power meter data.
+- State of charge (SOC) monitoring for the battery.
 - Energy import/export monitoring.
+- integartes entity names with "sonnen.*" 
 
 ## Not Supported
 - Writing not possible / Only Reading
 
 ## Compatibility
 This integration works with SonnenBatterie systems starting from the Eco8 generation and newer.
+Actual known Hardware Systems (More possible):
+- Eco 8.0
+- Eco 8.13
+- Eco 8.53
+- Eco 9.53
+- sonnenBatterie 10
+- sonnenBatterie 10 Performance
+- sonnenBatterie 10 Performance+
 
 ## Configuration of SonnenBatterie
 1. Log in to your battery's dashboard.
