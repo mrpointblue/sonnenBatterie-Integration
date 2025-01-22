@@ -1,0 +1,10 @@
+{
+    "domain": "sonnenBatterie",
+    "name": "SonnenBatterie",
+    "version": "1.0.7",
+    "config_flow": true,
+    "documentation": "https://example.com",
+    "dependencies": [],
+    "requirements": [],
+    "codeowners": ["@your_github_username"]
+  }
