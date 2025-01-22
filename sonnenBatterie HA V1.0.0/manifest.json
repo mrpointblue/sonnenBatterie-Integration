@@ -1,9 +1,9 @@
 {
     "domain": "sonnenBatterie",
     "name": "SonnenBatterie",
-    "version": "1.0.7",
+    "version": "1.0.0",
     "config_flow": true,
-    "documentation": "https://example.com",
+    "documentation": "https://github.com/mrpointblue/sonnenBatterie-Integration",
     "dependencies": [],
     "requirements": [],
     "codeowners": ["@your_github_username"]
