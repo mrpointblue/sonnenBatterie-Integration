@@ -6,7 +6,9 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Live power consumption and production data.
 - State of charge monitoring for the battery.
 - Energy import/export monitoring.
-- Data refresh every 5 seconds for near real-time updates.
+
+## Not Supported
+- Writing not possible / Only Reading
 
 ## Compatibility
 This integration works with SonnenBatterie systems starting from the Eco8 generation and newer.
