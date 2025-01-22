@@ -1,0 +1,16 @@
+{
+    "title": "sonnenBatterie",
+    "config": {
+      "step": {
+        "user": {
+          "title": "sonnenBatterie Configuration",
+          "description": "Enter your IP address and Auth-Token",
+          "data": {
+            "ip_address": "IP Address",
+            "token": "Auth Token"
+          }
+        }
+      }
+    }
+  }
+  
