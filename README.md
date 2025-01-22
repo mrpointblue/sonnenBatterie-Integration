@@ -19,6 +19,9 @@ This integration works with SonnenBatterie systems starting from the Eco8 genera
 3. Enable `JSON API for Reading`.
 4. Copy the token provided for use in the Home Assistant UI.
 
+<img width="1438" alt="Bildschirmfoto 2025-01-23 um 00 45 32" src="https://github.com/user-attachments/assets/25fd5801-0086-43df-82dd-cebf0da51496" />
+
+
 ## Installation
 1. Clone this repository into your Home Assistant `custom_components` directory:
    ```bash
