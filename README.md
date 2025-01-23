@@ -72,7 +72,7 @@ sensor:
         state_class: total_increasing
         state: >
           {% if states('sensor.sonnen_ac_power')|float < 0 %}
-            {{ (states('sensor.sonnen_ac_power')|float * -1 / 1000 / 60 / 60) | round(2) }}
+            {{ (states('sensor.sonnen_ac_power')|float * -1 / 1000) | round(2) }}
           {% else %}
             0
           {% endif %}
@@ -86,7 +86,7 @@ sensor:
         state_class: total_increasing
         state: >
           {% if states('sensor.sonnen_ac_power')|float > 0 %}
-            {{ (states('sensor.sonnen_ac_power')|float / 1000 / 60 / 60) | round(2) }}
+            {{ (states('sensor.sonnen_ac_power')|float / 1000) | round(2) }}
           {% else %}
             0
           {% endif %}
