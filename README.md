@@ -69,8 +69,8 @@ sensor:
       device_class: power
       state_class: measurement
       state: >
-        {% if states('sensor.sonnen_ac_power_2') | float < 0 %}
-          {{ (states('sensor.sonnen_ac_power_2') | float) | abs }}
+        {% if states('sensor.sonnen_ac_power') | float < 0 %}
+          {{ (states('sensor.sonnen_ac_power') | float) | abs }}
         {% else %}
           0
         {% endif %}
@@ -81,8 +81,8 @@ sensor:
       device_class: power
       state_class: measurement
       state: >
-        {% if states('sensor.sonnen_ac_power_2') | float > 0 %}
-          {{ (states('sensor.sonnen_ac_power_2') | float) }}
+        {% if states('sensor.sonnen_ac_power') | float > 0 %}
+          {{ (states('sensor.sonnen_ac_power') | float) }}
         {% else %}
           0
         {% endif %}
