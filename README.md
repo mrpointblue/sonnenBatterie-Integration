@@ -59,39 +59,48 @@ This integration provides the following sensors:
   - Tracks the total energy imported from the grid in kWh.
 
 ## Example YAML Configuration (Manual)
-If you prefer manual configuration, add the following to your `configuration.yaml` file:
+If you want a sensor for charge and discharge energy for using in energy dashboard, add the following to your `configuration.yaml` file:
 
 ```yaml
 sensor:
-  - platform: template
-    sensors:
-      sonnen_charge_energy:
-        unique_id: "sonnen_charge_energy"
-        unit_of_measurement: "kWh"
-        device_class: energy
-        state_class: total_increasing
-        state: >
-          {% if states('sensor.sonnen_ac_power')|float < 0 %}
-            {{ (states('sensor.sonnen_ac_power')|float * -1 / 1000) | round(2) }}
-          {% else %}
-            0
-          {% endif %}
-        attributes:
-          direction: "charge"
+  - name: "Sonnen Charge Power"
+      unique_id: "sonnen_charge_power"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      state: >
+        {% if states('sensor.sonnen_ac_power_2') | float < 0 %}
+          {{ (states('sensor.sonnen_ac_power_2') | float) | abs }}
+        {% else %}
+          0
+        {% endif %}
 
-      sonnen_discharge_energy:
-        unique_id: "sonnen_discharge_energy"
-        unit_of_measurement: "kWh"
-        device_class: energy
-        state_class: total_increasing
-        state: >
-          {% if states('sensor.sonnen_ac_power')|float > 0 %}
-            {{ (states('sensor.sonnen_ac_power')|float / 1000) | round(2) }}
-          {% else %}
-            0
-          {% endif %}
-        attributes:
-          direction: "discharge"
+    - name: "Sonnen Discharge Power"
+      unique_id: "sonnen_discharge_power"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      state: >
+        {% if states('sensor.sonnen_ac_power_2') | float > 0 %}
+          {{ (states('sensor.sonnen_ac_power_2') | float) }}
+        {% else %}
+          0
+        {% endif %}
+
+    - platform: integration
+      source: sensor.sonnen_charge_power
+      name: "Sonnen Charge Energy"
+      unit_prefix: k
+      round: 2
+      method: trapezoidal
+
+    - platform: integration
+      source: sensor.sonnen_discharge_power
+      name: "Sonnen Discharge Energy"
+      unit_prefix: k
+      round: 2
+      method: trapezoidal
+
 ```
 
 ## Known Issues
