@@ -7,7 +7,7 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Deatiled power meter data.
 - State of charge (SOC) monitoring for the battery.
 - Energy import/export monitoring.
-- integartes entity names with "sonnen.*" 
+- Integrates custom prefix
 
 ## Not Supported
 - Writing not possible / Only Reading
@@ -43,6 +43,7 @@ Actual known Hardware Systems (More possible):
 1. Go to `Settings` > `Integrations`.
 2. Click `Add Integration` and search for `SonnenBatterie`.
 3. Enter the IP address of your SonnenBatterie and the token obtained from the dashboard.
+4. Create an custom prefix. Use your serialnumber of the battery system.
 
 ## Sensors Provided
 This integration provides the following sensors:
