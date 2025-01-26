@@ -1,10 +1,10 @@
-{
+  {
     "domain": "sonnenBatterie",
-    "name": "SonnenBatterie",
+    "name": "SonnenBatterie Integration",
     "version": "1.0.1",
     "config_flow": true,
     "documentation": "https://github.com/mrpointblue/sonnenBatterie-Integration",
-    "dependencies": [],
-    "requirements": [],
+    "requirements": ["some-library==1.2.3"],
+    "iot_class": "local_polling",
     "codeowners": ["@mrpointblue"]
-  }
+}
