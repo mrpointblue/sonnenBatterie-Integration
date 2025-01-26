@@ -11,7 +11,7 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 
 ## Recommendation
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
-  Use = https://github.com/flixlix/power-flow-card-plus
+  https://github.com/flixlix/power-flow-card-plus
 
 ## Not Supported
 - Writing not possible / Only Reading
