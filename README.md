@@ -10,7 +10,7 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Integrates custom prefix
 
 ## Recommendation
-- Best Dashbaord integration for energx flow with sonnenBatterie Integration>>
+- Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   Use = https://github.com/flixlix/power-flow-card-plus
 
 ## Not Supported
