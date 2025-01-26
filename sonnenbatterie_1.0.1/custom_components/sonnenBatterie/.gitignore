@@ -1,1 +1,36 @@
-# nothing
+# Byte-compiled Python-Dateien
+__pycache__/
+*.py[cod]
+
+# Virtuelle Umgebungen
+venv/
+ENV/
+env/
+.venv/
+
+# Entwicklungsumgebungsdateien
+.idea/
+.vscode/
+*.swp
+
+# Betriebssystemspezifische Dateien
+.DS_Store
+Thumbs.db
+
+# Logdateien
+*.log
+
+# Temporäre Dateien
+*.tmp
+*.bak
+*.old
+
+# Testausgaben
+.coverage
+htmlcov/
+*.cover
+
+# Sonstige
+*.egg-info/
+dist/
+build/
