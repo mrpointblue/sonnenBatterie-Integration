@@ -11,6 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_SCAN_INTERVAL = 30  # Default in Sekunden
 MIN_SCAN_INTERVAL = 5  # Minimum in Sekunden
 
+
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
     """
     Asynchronous setup of sonnenbatterie sensors based on config entry.
@@ -23,6 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
         SonnenBatterieSensor(sensor, ip, token, scan_interval, custom_prefix) for sensor in SENSORS
     ]
     async_add_entities(entities, update_before_add=True)
+
 
 class SonnenBatterieSensor(Entity):
     """Representation of a Sonnenbatterie sensor."""
@@ -116,7 +118,7 @@ class SonnenBatterieSensor(Entity):
                         and entry.get("direction") == self._sensor_direction
                         and self._key in entry
                     ):
-                        value = entry[self._key]
+                        value = entry.get(self._key, 0)  # Default to 0 if key is missing
                         self._state = round(value, 2) if isinstance(value, (int, float)) else value
                         return
                 _LOGGER.warning(
