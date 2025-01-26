@@ -5,7 +5,7 @@ from homeassistant.helpers.entity import Entity
 import aiohttp
 import logging
 
-from .const import DOMAIN, SENSORS
+from .const import DOMAIN, SENSORS, DEFAULT_PREFIX
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_SCAN_INTERVAL = 30  # Default in Sekunden
@@ -18,19 +18,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
     ip = config_entry.data["ip_address"]
     token = config_entry.data["token"]
     scan_interval = config_entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
+    custom_prefix = config_entry.data.get("custom_prefix", DEFAULT_PREFIX)
     entities = [
-        SonnenBatterieSensor(sensor, ip, token, scan_interval) for sensor in SENSORS
+        SonnenBatterieSensor(sensor, ip, token, scan_interval, custom_prefix) for sensor in SENSORS
     ]
     async_add_entities(entities, update_before_add=True)
 
 class SonnenBatterieSensor(Entity):
     """Representation of a SonnenBatterie sensor."""
 
-    def __init__(self, sensor, ip, token, scan_interval):
+    def __init__(self, sensor, ip, token, scan_interval, custom_prefix):
         """
         Initialize the sensor.
         """
-        self._name = f"sonnen_{sensor['name']}"
+        self._name = f"{custom_prefix}_{sensor['name']}"
         self._key = sensor["key"]
         self._unit = sensor["unit"]
         self._device_class = sensor["device_class"]
@@ -80,7 +81,7 @@ class SonnenBatterieSensor(Entity):
     def unique_id(self):
         """Return a unique ID for the sensor based on its key, direction, and IP address."""
         direction_suffix = f"_{self._sensor_direction}" if self._sensor_direction else ""
-        return f"sonnen_{self._ip}-{self._key}{direction_suffix}"
+        return f"{self._name}_{self._ip}-{self._key}{direction_suffix}"
 
     async def async_update(self):
         """

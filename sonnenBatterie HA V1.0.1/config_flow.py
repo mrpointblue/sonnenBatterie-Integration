@@ -3,8 +3,9 @@ from homeassistant.core import callback
 import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
 from .const import DOMAIN
+from .const import DEFAULT_PREFIX
 
-class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain="sonnenBatterie"):
     """Handle a config flow for SonnenBatterie."""
 
     async def async_step_user(self, user_input=None):
@@ -14,6 +15,7 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ip = user_input.get("ip_address")
             token = user_input.get("token")
             scan_interval = user_input.get("scan_interval")
+            custom_prefix = user_input.get("custom_prefix", DEFAULT_PREFIX)
 
             if not ip or not token:
                 errors["base"] = "invalid_credentials"
@@ -26,6 +28,7 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         "ip_address": ip,
                         "token": token,
                         "scan_interval": scan_interval,
+                        "custom_prefix": custom_prefix,
                     },
                 )
 
@@ -34,6 +37,7 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required("ip_address"): cv.string,
                 vol.Required("token"): cv.string,
                 vol.Required("scan_interval", default=30): vol.All(vol.Coerce(int), vol.Range(min=5)),
+                vol.Optional("custom_prefix", default=DEFAULT_PREFIX): cv.string,
             }
         )
 

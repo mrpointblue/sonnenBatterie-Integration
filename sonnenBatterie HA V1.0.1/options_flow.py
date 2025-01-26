@@ -2,6 +2,7 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
+from .const import DEFAULT_PREFIX
 
 class SonnenOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for the SonnenBatterie integration."""
@@ -19,6 +20,7 @@ class SonnenOptionsFlow(config_entries.OptionsFlow):
                     "ip_address": user_input["ip_address"],
                     "token": user_input["token"],
                     "scan_interval": user_input["scan_interval"],
+                    "custom_prefix": user_input.get("custom_prefix", DEFAULT_PREFIX),
                 },
             )
             return self.async_create_entry(title="", data=user_input)
@@ -30,6 +32,9 @@ class SonnenOptionsFlow(config_entries.OptionsFlow):
                 vol.Required(
                     "scan_interval", default=self.config_entry.data.get("scan_interval", 30)
                 ): vol.All(vol.Coerce(int), vol.Range(min=5)),
+                vol.Optional(
+                    "custom_prefix", default=self.config_entry.data.get("custom_prefix", DEFAULT_PREFIX)
+                ): cv.string,
             }
         )
 

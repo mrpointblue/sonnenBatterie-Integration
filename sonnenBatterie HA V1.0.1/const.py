@@ -1,5 +1,6 @@
 # Domain name for the integration
 DOMAIN = "sonnenBatterie"
+DEFAULT_PREFIX = "sonnen"
 
 # Definition of sensors and their corresponding keys
 SENSORS = [
@@ -45,6 +46,16 @@ SENSORS = [
     {"name": "AC Current", "key": "iac_total", "unit": "A", "device_class": "current"},
     {"name": "PV Power", "key": "ppv", "unit": "W", "device_class": "power"},
     {"name": "Inverter Temperature", "key": "tmax", "unit": "°C", "device_class": "temperature"},
+    {"name": "Ibat", "key": "ibat", "unit": "A", "device_class": "current"},
+    {"name": "Ipv", "key": "ipv", "unit": "A", "device_class": "current"},
+    {"name": "Pac microgrid", "key": "pac_microgrid", "unit": "W", "device_class": "power"},
+    {"name": "Pac total", "key": "pac_total", "unit": "W", "device_class": "power"},
+    {"name": "Pbat", "key": "pbat", "unit": "W", "device_class": "power"},
+    {"name": "Phi", "key": "phi", "unit": None, "device_class": None},
+    {"name": "Sac total", "key": "sac_total", "unit": None, "device_class": None},
+    {"name": "Uac", "key": "uac", "unit": "V", "device_class": "voltage"},
+    {"name": "Ubat", "key": "ubat", "unit": "V", "device_class": "voltage"},
+    {"name": "Upv", "key": "upv", "unit": "V", "device_class": "voltage"},
 
     # Sensors from /api/v2/configurations
     {"name": "Operating Mode", "key": "EM_OperatingMode", "unit": None, "device_class": None},
