@@ -13,7 +13,7 @@ MIN_SCAN_INTERVAL = 5  # Minimum in Sekunden
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
     """
-    Asynchronous setup of sonnenBatterie sensors based on config entry.
+    Asynchronous setup of sonnenbatterie sensors based on config entry.
     """
     ip = config_entry.data["ip_address"]
     token = config_entry.data["token"]
@@ -25,7 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
     async_add_entities(entities, update_before_add=True)
 
 class SonnenBatterieSensor(Entity):
-    """Representation of a SonnenBatterie sensor."""
+    """Representation of a Sonnenbatterie sensor."""
 
     def __init__(self, sensor, ip, token, scan_interval, custom_prefix):
         """

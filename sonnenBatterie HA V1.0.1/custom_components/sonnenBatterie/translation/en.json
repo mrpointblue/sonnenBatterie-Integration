@@ -1,9 +1,9 @@
 {
-    "title": "sonnenBatterie",
+    "title": "sonnenbatterie",
     "config": {
       "step": {
         "user": {
-          "title": "sonnenBatterie Configuration",
+          "title": "sonnenbatterie Configuration",
           "description": "Enter your IP address and Auth-Token",
           "data": {
             "ip_address": "IP Address",

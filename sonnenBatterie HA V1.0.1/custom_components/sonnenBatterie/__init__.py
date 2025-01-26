@@ -8,7 +8,7 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up the sonnenBatterie integration for sensor readings."""
+    """Set up the sonnenbatterie integration for sensor readings."""
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {}
 
@@ -20,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error(f"Config entry not ready: {e}")
         raise
     except Exception as e:
-        _LOGGER.error(f"Failed to forward setup for sonnenBatterie sensors: {e}")
+        _LOGGER.error(f"Failed to forward setup for sonnenbatterie sensors: {e}")
         return False
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -31,7 +31,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.data[DOMAIN].pop(entry.entry_id)
         return unload_ok
     except Exception as e:
-        _LOGGER.error(f"Failed to unload entry for sonnenBatterie: {e}")
+        _LOGGER.error(f"Failed to unload entry for sonnenbatterie: {e}")
         return False
 
 async def async_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -47,4 +47,4 @@ async def async_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         await async_setup_entry(hass, entry)
         _LOGGER.info(f"Successfully updated configuration for entry: {entry.entry_id}")
     except Exception as e:
-        _LOGGER.error(f"Failed to update configuration for sonnenBatterie entry: {e}")
+        _LOGGER.error(f"Failed to update configuration for sonnenbatterie entry: {e}")

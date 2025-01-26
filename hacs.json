@@ -1,7 +1,7 @@
 {
-    "name": "sonnenBatterie Integration",
+    "name": "sonnenbatterie integration",
     "content_in_root": false,
-    "domains": ["sonnenBatterie"],
+    "domains": ["sonnenbatterie"],
     "country": ["DE", "US"],
     "iot_class": "local_polling",
     "render_readme": true

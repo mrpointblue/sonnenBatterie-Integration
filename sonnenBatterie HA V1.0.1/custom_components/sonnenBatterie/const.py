@@ -1,5 +1,5 @@
 # Domain name for the integration
-DOMAIN = "sonnenBatterie"
+DOMAIN = "sonnenbatterie"
 DEFAULT_PREFIX = "sonnen"
 
 # Definition of sensors and their corresponding keys

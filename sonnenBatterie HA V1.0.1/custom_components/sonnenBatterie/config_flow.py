@@ -5,8 +5,8 @@ from homeassistant.helpers import config_validation as cv
 from .const import DOMAIN
 from .const import DEFAULT_PREFIX
 
-class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain="sonnenBatterie"):
-    """Handle a config flow for SonnenBatterie."""
+class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain="sonnenbatterie"):
+    """Handle a config flow for Sonnenbatterie."""
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -23,7 +23,7 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain="sonnenBatterie
                 errors["scan_interval"] = "too_short"
             else:
                 return self.async_create_entry(
-                    title="SonnenBatterie",
+                    title="Sonnenbatterie",
                     data={
                         "ip_address": ip,
                         "token": token,

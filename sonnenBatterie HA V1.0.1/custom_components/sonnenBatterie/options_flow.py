@@ -5,7 +5,7 @@ from homeassistant.helpers import config_validation as cv
 from .const import DEFAULT_PREFIX
 
 class SonnenOptionsFlow(config_entries.OptionsFlow):
-    """Handle options flow for the SonnenBatterie integration."""
+    """Handle options flow for the Sonnenbatterie integration."""
 
     def __init__(self, config_entry):
         """Initialize the options flow."""
