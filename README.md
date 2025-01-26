@@ -9,6 +9,10 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Energy import/export monitoring.
 - Integrates custom prefix
 
+## Recommendation
+- Best Dashbaord integration for energx flow with sonnenBatterie Integration>>
+  Use = https://github.com/flixlix/power-flow-card-plus
+
 ## Not Supported
 - Writing not possible / Only Reading
 
@@ -62,7 +66,7 @@ This integration provides the following sensors:
 ## Example YAML Configuration (Manual)
 If you want a sensor for charge and discharge energy for using in energy dashboard, add the following to your `configuration.yaml` file:
 
-```yaml
+```yaml (Ensure to change the prefix if using you own customized prefix)
 sensor:
   - name: "Sonnen Charge Power"
       unique_id: "sonnen_charge_power"
