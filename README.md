@@ -4,7 +4,7 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 
 ## Features
 - Live power consumption and production data.
-- Deatiled power meter data.
+- Detailed power meter data.
 - State of charge (SOC) monitoring for the battery.
 - Energy import/export monitoring.
 - Integrates custom prefix
@@ -47,21 +47,128 @@ Actual known Hardware Systems (More possible):
 1. Go to `Settings` > `Integrations`.
 2. Click `Add Integration` and search for `SonnenBatterie`.
 3. Enter the IP address of your SonnenBatterie and the token obtained from the dashboard.
-4. Create an custom prefix. Use your serialnumber of the battery system.
+4. If you want: Create a custom prefix. For example use your serialnumber of the battery system. Default is "sonnen".
 
 ## Sensors Provided
 This integration provides the following sensors:
 
-- **Charge Energy**
-  - Measures the energy used to charge the battery in kWh.
-- **Discharge Energy**
-  - Measures the energy discharged from the battery in kWh.
-- **Battery State of Charge**
-  - Displays the current charge percentage of the battery.
-- **Production Energy Exported**
-  - Tracks the total energy exported to the grid in kWh.
-- **Production Energy Imported**
-  - Tracks the total energy imported from the grid in kWh.
+# Auslesbare Daten
+
+## Übersicht der Sensoren
+
+The following sensors can be read from various API endpoints. Each sensor includes the name, the key (key), the unit, and an optional device class (device_class).
+
+---
+
+### **Sensors from `/api/v2/latestdata`**
+- House Consumption (`Consumption_W`): W (device_class: `power`)
+- Solar Production (`Production_W`): W (device_class: `power`)
+- Grid Feed-In (`GridFeedIn_W`): W (device_class: `power`)
+- Battery State of Charge (`USOC`): % (device_class: `battery`)
+- AC Power (`Pac_total_W`): W (device_class: `power`)
+
+---
+
+### **Sensors from `/api/v2/status`**
+- Apparent Output (`Apparent_output`): VA
+- Backup Buffer (`BackupBuffer`): % (device_class: `battery`)
+- Battery Charging (`BatteryCharging`)
+- Battery Discharging (`BatteryDischarging`)
+- System Status (`SystemStatus`)
+- AC Voltage (`Uac`): V (device_class: `voltage`)
+- Battery Voltage (`Ubat`): V (device_class: `voltage`)
+- Frequency (`Fac`): Hz
+- Flow Consumption Battery (`FlowConsumptionBattery`)
+- Flow Consumption Grid (`FlowConsumptionGrid`)
+- Flow Consumption Production (`FlowConsumptionProduction`)
+- Flow Grid Battery (`FlowGridBattery`)
+- Flow Production Battery (`FlowProductionBattery`)
+- Flow Production Grid (`FlowProductionGrid`)
+- Grid Feed-In Power (`GridFeedIn_W`): W (device_class: `power`)
+- Total Power Consumption (`Consumption_W`): W (device_class: `power`)
+- Total Power Production (`Production_W`): W (device_class: `power`)
+- Remaining State of Charge (`RSOC`): % (device_class: `battery`)
+- State of Charge (`USOC`): % (device_class: `battery`)
+- Total Active Power (`Pac_total_W`): W (device_class: `power`)
+- Discharge Not Allowed (`dischargeNotAllowed`)
+- Generator Auto Start (`generator_autostart`)
+- Apparent Power Phase 1 (`Sac1`): VA (device_class: `power`)
+- Apparent Power Phase 2 (`Sac2`): VA (device_class: `power`)
+- Apparent Power Phase 3 (`Sac3`): VA (device_class: `power`)
+- Timestamp (`Timestamp`) (device_class: `timestamp`)
+- System Installation Status (`IsSystemInstalled`)
+- Operating Mode (`OperatingMode`)
+
+---
+
+### **Sensors from `/api/v2/inverter`**
+- AC Frequency (`fac`): Hz
+- AC Current (`iac_total`): A (device_class: `current`)
+- PV Power (`ppv`): W (device_class: `power`)
+- Inverter Temperature (`tmax`): °C (device_class: `temperature`)
+- Battery Current (`ibat`): A (device_class: `current`)
+- PV Current (`ipv`): A (device_class: `current`)
+- Microgrid Power (`pac_microgrid`): W (device_class: `power`)
+- Total Power (`pac_total`): W (device_class: `power`)
+- Battery Power (`pbat`): W (device_class: `power`)
+- Apparent Power Total (`sac_total`)
+- AC Voltage (`uac`): V (device_class: `voltage`)
+- Battery Voltage (`ubat`): V (device_class: `voltage`)
+- PV Voltage (`upv`): V (device_class: `voltage`)
+
+---
+
+### **Sensors from `/api/v2/configurations`**
+- Operating Mode (`EM_OperatingMode`)
+- Max Inverter Power (`IC_InverterMaxPower_w`): W (device_class: `power`)
+- Power Factor Cos Phi (`NVM_PfcFixedCosPhi`)
+- Software Version (`DE_Software`)
+- Installed Batteries (`IC_BatteryModules`)
+
+---
+
+### **Sensors from `/api/v2/battery`**
+- Battery Voltage (`systemdcvoltage`): V (device_class: `voltage`)
+- System Current (`systemcurrent`): A (device_class: `current`)
+- Charge Current Limit (`chargecurrentlimit`): A
+- Discharge Current Limit (`dischargecurrentlimit`): A
+- Full Charge Capacity (`fullchargecapacity`): Ah (device_class: `energy`)
+- Remaining Capacity (`remainingcapacity`): Ah (device_class: `energy`)
+- Maximum Cell Temperature (`maximumcelltemperature`): °C (device_class: `temperature`)
+- Minimum Cell Temperature (`minimumcelltemperature`): °C (device_class: `temperature`)
+- Charge Cycle Count (`cyclecount`)
+
+---
+
+### **Sensors from `/api/v2/powermeter`**
+
+#### **Production Values**
+- Production Power L1 (`w_l1`): W (device_class: `power`, direction: `production`)
+- Production Power L2 (`w_l2`): W (device_class: `power`, direction: `production`)
+- Production Power L3 (`w_l3`): W (device_class: `power`, direction: `production`)
+- Production Total Power (`w_total`): W (device_class: `power`, direction: `production`)
+- Production Current L1 (`a_l1`): A (device_class: `current`, direction: `production`)
+- Production Current L2 (`a_l2`): A (device_class: `current`, direction: `production`)
+- Production Current L3 (`a_l3`): A (device_class: `current`, direction: `production`)
+- Production Voltage L1-N (`v_l1_n`): V (device_class: `voltage`, direction: `production`)
+- Production Voltage L2-N (`v_l2_n`): V (device_class: `voltage`, direction: `production`)
+- Production Voltage L3-N (`v_l3_n`): V (device_class: `voltage`, direction: `production`)
+- Production Energy Exported (`kwh_exported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `production`)
+- Production Energy Imported (`kwh_imported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `production`)
+
+#### **Consumption Values**
+- Consumption Power L1 (`w_l1`): W (device_class: `power`, direction: `consumption`)
+- Consumption Power L2 (`w_l2`): W (device_class: `power`, direction: `consumption`)
+- Consumption Power L3 (`w_l3`): W (device_class: `power`, direction: `consumption`)
+- Consumption Total Power (`w_total`): W (device_class: `power`, direction: `consumption`)
+- Consumption Current L1 (`a_l1`): A (device_class: `current`, direction: `consumption`)
+- Consumption Current L2 (`a_l2`): A (device_class: `current`, direction: `consumption`)
+- Consumption Current L3 (`a_l3`): A (device_class: `current`, direction: `consumption`)
+- Consumption Voltage L1-N (`v_l1_n`): V (device_class: `voltage`, direction: `consumption`)
+- Consumption Voltage L2-N (`v_l2_n`): V (device_class: `voltage`, direction: `consumption`)
+- Consumption Voltage L3-N (`v_l3_n`): V (device_class: `voltage`, direction: `consumption`)
+- Consumption Energy Exported (`kwh_exported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `consumption`)
+- Consumption Energy Imported (`kwh_imported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `consumption`)
 
 ## Example YAML Configuration (Manual)
 If you want a sensor for charge and discharge energy for using in energy dashboard, add the following to your `configuration.yaml` file:
