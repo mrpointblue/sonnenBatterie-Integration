@@ -1,0 +1,8 @@
+{
+    "name": "sonnenBatterie Integration",
+    "content_in_root": false,
+    "domains": ["sonnenBatterie"],
+    "country": ["DE", "US"],
+    "iot_class": "local_polling",
+    "render_readme": true
+  }
