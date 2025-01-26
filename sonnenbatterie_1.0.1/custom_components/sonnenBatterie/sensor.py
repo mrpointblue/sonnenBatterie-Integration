@@ -111,34 +111,37 @@ class SonnenBatterieSensor(Entity):
 
             # Process powermeter data with direction filtering
             if url.endswith("/powermeter"):
-                for entry in data:
-                    _LOGGER.debug(f"Processing powermeter entry: {entry}")
-                    if (
-                        self._sensor_direction
-                        and entry.get("direction") == self._sensor_direction
-                        and self._key in entry
-                    ):
-                        value = entry.get(self._key, 0)  # Default to 0 if key is missing
-                        self._state = round(value, 2) if isinstance(value, (int, float)) else value
-                        return
-                _LOGGER.warning(
-                    f"Key '{self._key}' or direction '{self._sensor_direction}' not found in powermeter data for {self._name}."
-                )
-                self._state = None
+                if isinstance(data, list):  # Ensure data is a list
+                    for entry in data:
+                        _LOGGER.debug(f"Processing powermeter entry: {entry}")
+                        if (
+                            self._sensor_direction
+                            and entry.get("direction") == self._sensor_direction
+                            and self._key in entry
+                        ):
+                            value = entry.get(self._key, 0)  # Default to 0 if key is missing
+                            self._state = round(value, 2) if isinstance(value, (int, float)) else value
+                            return
+                    _LOGGER.warning(
+                        f"Key '{self._key}' or direction '{self._sensor_direction}' not found in powermeter data for {self._name}."
+                    )
+                    self._state = None
+                else:
+                    _LOGGER.warning(f"Unexpected response format for powermeter: {type(data)}")
+                    self._state = None
                 return
 
-            # Handle nested keys (e.g., "ic_status.stateinverter")
-            else:
-                keys = self._key.split(".")
-                value = data
-                for key in keys:
-                    value = value.get(key, None)
-                    if value is None:
-                        break
-                if value is not None:
-                    self._state = round(value, 2) if isinstance(value, (int, float)) else value
-                else:
+            # Handle other API endpoints with direct key lookup
+            elif isinstance(data, dict):  # Ensure data is a dictionary
+                value = data.get(self._key, None)
+                if value is None:
                     _LOGGER.warning(f"Key '{self._key}' not found in API response for sensor '{self._name}'.")
+                    self._state = None
+                else:
+                    self._state = round(value, 2) if isinstance(value, (int, float)) else value
+            else:
+                _LOGGER.warning(f"Unexpected response format: {type(data)}")
+                self._state = None
 
         except Exception as e:
             self._state = None
