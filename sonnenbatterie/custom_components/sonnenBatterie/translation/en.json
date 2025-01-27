@@ -1,16 +1,33 @@
 {
-    "title": "sonnenbatterie",
-    "config": {
-      "step": {
-        "user": {
-          "title": "sonnenbatterie Configuration",
-          "description": "Enter your IP address and Auth-Token",
-          "data": {
-            "ip_address": "IP Address",
-            "token": "Auth Token"
-          }
+  "title": "sonnenbatterie",
+  "config": {
+    "step": {
+      "user": {
+        "title": "sonnenbatterie Configuration",
+        "description": "Enter your IP address and Auth-Token",
+        "data": {
+          "ip_address": "IP Address",
+          "token": "Auth Token"
         }
       }
     }
+  },
+  "ui": {
+    "card_title": "Sonnen Battery Control",
+    "em_operating_mode": "Operating Mode",
+    "direction": "Direction",
+    "charge": "Charge",
+    "discharge": "Discharge",
+    "power": "Power (W)",
+    "apply": "Apply",
+    "manuell": "Manual",
+    "optimization": "Self-Consumption Optimization",
+    "test_mode": "Test Mode",
+    "extension_mode": "Extension Mode",
+    "time_of_use": "Time Of Use",
+    "mode_set_success": "Operating mode successfully set.",
+    "mode_set_error": "Error setting the operating mode.",
+    "power_set_success": "Power and direction successfully set.",
+    "power_set_error": "Error setting power and direction."
   }
-  
+}

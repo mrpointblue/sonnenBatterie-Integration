@@ -9,33 +9,33 @@ class SonnenBatteryCard extends HTMLElement {
     set hass(hass) {
         if (!this.content) {
             this.innerHTML = `
-                <ha-card header="Sonnen Battery Control">
+                <ha-card header="${hass.localize('ui.card_title')}">
                     <div class="card-content">
                         <!-- Operating Mode -->
                         <div>
-                            <label for="em_operating_mode">OperatingMode:</label>
+                            <label for="em_operating_mode">${hass.localize('ui.em_operating_mode')}:</label>
                             <select id="em_operating_mode">
-                                <option value="1">Manuell</option>
-                                <option value="2">Eigenverbrauchsoptimierung</option>
-                                <option value="4">Testbetrieb</option>
-                                <option value="6">Erweiterungsmodus</option>
-                                <option value="10">Time Of Use</option>
+                                <option value="1">${hass.localize('ui.manuell')}</option>
+                                <option value="2">${hass.localize('ui.optimization')}</option>
+                                <option value="4">${hass.localize('ui.test_mode')}</option>
+                                <option value="6">${hass.localize('ui.extension_mode')}</option>
+                                <option value="10">${hass.localize('ui.time_of_use')}</option>
                             </select>
-                            <button id="set_em_mode">Modus Setzen</button>
+                            <button id="set_em_mode">${hass.localize('ui.apply')}</button>
                         </div>
 
                         <!-- Leistung und Richtung -->
                         <div>
-                            <label for="direction">Richtung:</label>
+                            <label for="direction">${hass.localize('ui.direction')}:</label>
                             <select id="direction">
-                                <option value="charge">Laden</option>
-                                <option value="discharge">Entladen</option>
+                                <option value="charge">${hass.localize('ui.charge')}</option>
+                                <option value="discharge">${hass.localize('ui.discharge')}</option>
                             </select>
                         </div>
                         <div>
-                            <label for="watts">Leistung (W):</label>
+                            <label for="watts">${hass.localize('ui.power')}:</label>
                             <input type="number" id="watts" min="0" value="1000" />
-                            <button id="set_power">Leistung Setzen</button>
+                            <button id="set_power">${hass.localize('ui.apply')}</button>
                         </div>
                     </div>
                 </ha-card>
@@ -54,10 +54,10 @@ class SonnenBatteryCard extends HTMLElement {
                     mode: emMode,
                 }).then(() => {
                     console.log(`EM_OperatingMode wurde auf ${emMode} gesetzt.`);
-                    alert('EM_OperatingMode wurde gesetzt.');
+                    alert(hass.localize('ui.mode_set_success'));
                 }).catch((error) => {
                     console.error('Fehler beim Setzen des EM_OperatingMode:', error);
-                    alert('Fehler beim Setzen des EM_OperatingMode.');
+                    alert(hass.localize('ui.mode_set_error'));
                 });
             });
 
@@ -65,13 +65,12 @@ class SonnenBatteryCard extends HTMLElement {
             this.querySelector('#set_power').addEventListener('click', () => {
                 const direction = this.querySelector('#direction').value;
                 const watts = parseInt(this.querySelector('#watts').value, 10);
-                const emMode = parseInt(emSelect.value, 10);
 
-                console.log(`Leistung anwenden: Mode=${emMode}, Richtung=${direction}, Leistung=${watts}`);
+                console.log(`Leistung anwenden: Richtung=${direction}, Leistung=${watts}`);
 
                 // Eingabevalidierung
                 if (isNaN(watts) || watts < 0) {
-                    alert('Bitte gib eine gültige Leistung (W) ein.');
+                    alert(hass.localize('ui.invalid_power'));
                     return;
                 }
 
@@ -79,13 +78,12 @@ class SonnenBatteryCard extends HTMLElement {
                 hass.callService('sonnenbatterie', 'set_battery_power', {
                     direction: direction,
                     watts: watts,
-                    mode: emMode,
                 }).then(() => {
-                    console.log(`Batterie wird ${direction} mit ${watts} W im Modus ${emMode} gesteuert.`);
-                    alert('Leistung und Richtung wurde gesetzt.');
+                    console.log(`Batterie wird ${direction} mit ${watts} W gesteuert.`);
+                    alert(hass.localize('ui.power_set_success'));
                 }).catch((error) => {
                     console.error('Fehler beim Setzen der Batterie-Leistung:', error);
-                    alert('Fehler beim Setzen der Batterie-Leistung.');
+                    alert(hass.localize('ui.power_set_error'));
                 });
             });
         }
