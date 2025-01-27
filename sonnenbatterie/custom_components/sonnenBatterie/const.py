@@ -99,5 +99,5 @@ OPERATING_MODES = {
     "4": "Testbetrieb",
     "6": "Erweiterungsmodus",
     "10": "Time Of Use",
-    "22": "Automatic Optimziation"
+    "11": "Automatic Optimziation"
 }
