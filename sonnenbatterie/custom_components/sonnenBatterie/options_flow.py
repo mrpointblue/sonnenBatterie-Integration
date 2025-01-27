@@ -9,42 +9,33 @@ class SonnenOptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, config_entry):
         """Initialize the options flow."""
-        self.config_entry = config_entry
+        self.entry_id = config_entry.entry_id
+        self.data = config_entry.data
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
         if user_input is not None:
             self.hass.config_entries.async_update_entry(
-                self.config_entry,
+                self.hass.config_entries.async_get_entry(self.entry_id),
                 data={
                     "ip_address": user_input["ip_address"],
                     "token": user_input["token"],
                     "scan_interval": user_input["scan_interval"],
                     "custom_prefix": user_input.get("custom_prefix", DEFAULT_PREFIX),
-                    "charge_discharge_direction": user_input["charge_discharge_direction"],
-                    "charge_discharge_power": user_input["charge_discharge_power"],
                 },
             )
             return self.async_create_entry(title="", data=user_input)
 
         schema = vol.Schema(
             {
-                vol.Required("ip_address", default=self.config_entry.data["ip_address"]): cv.string,
-                vol.Required("token", default=self.config_entry.data["token"]): cv.string,
+                vol.Required("ip_address", default=self.data["ip_address"]): cv.string,
+                vol.Required("token", default=self.data["token"]): cv.string,
                 vol.Required(
-                    "scan_interval", default=self.config_entry.data.get("scan_interval", 30)
+                    "scan_interval", default=self.data.get("scan_interval", 30)
                 ): vol.All(vol.Coerce(int), vol.Range(min=5)),
                 vol.Optional(
-                    "custom_prefix", default=self.config_entry.data.get("custom_prefix", DEFAULT_PREFIX)
+                    "custom_prefix", default=self.data.get("custom_prefix", DEFAULT_PREFIX)
                 ): cv.string,
-                vol.Required(
-                    "charge_discharge_direction",
-                    default=self.config_entry.data.get("charge_discharge_direction", "charge"),
-                ): vol.In(["charge", "discharge"]),  # Auswahl: Laden oder Entladen
-                vol.Required(
-                    "charge_discharge_power",
-                    default=self.config_entry.data.get("charge_discharge_power", 1000),
-                ): vol.All(vol.Coerce(int), vol.Range(min=0)),  # Leistung in Watt
             }
         )
 
