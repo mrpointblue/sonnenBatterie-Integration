@@ -13,7 +13,7 @@ class SonnenBatteryCard extends HTMLElement {
                     <div class="card-content">
                         <!-- Operating Mode -->
                         <div>
-                            <label for="em_operating_mode">EM_OperatingMode:</label>
+                            <label for="em_operating_mode">OperatingMode:</label>
                             <select id="em_operating_mode">
                                 <option value="1">Manuell</option>
                                 <option value="2">Eigenverbrauchsoptimierung</option>
@@ -21,7 +21,7 @@ class SonnenBatteryCard extends HTMLElement {
                                 <option value="6">Erweiterungsmodus</option>
                                 <option value="10">Time Of Use</option>
                             </select>
-                            <button id="set_em_mode">Modus Anwenden</button>
+                            <button id="set_em_mode">Modus Setzen</button>
                         </div>
 
                         <!-- Leistung und Richtung -->
@@ -35,7 +35,7 @@ class SonnenBatteryCard extends HTMLElement {
                         <div>
                             <label for="watts">Leistung (W):</label>
                             <input type="number" id="watts" min="0" value="1000" />
-                            <button id="set_power">Leistung Anwenden</button>
+                            <button id="set_power">Leistung Setzen</button>
                         </div>
                     </div>
                 </ha-card>
@@ -54,7 +54,7 @@ class SonnenBatteryCard extends HTMLElement {
                     mode: emMode,
                 }).then(() => {
                     console.log(`EM_OperatingMode wurde auf ${emMode} gesetzt.`);
-                    alert('EM_OperatingMode wurde angewendet.');
+                    alert('EM_OperatingMode wurde gesetzt.');
                 }).catch((error) => {
                     console.error('Fehler beim Setzen des EM_OperatingMode:', error);
                     alert('Fehler beim Setzen des EM_OperatingMode.');
@@ -82,7 +82,7 @@ class SonnenBatteryCard extends HTMLElement {
                     mode: emMode,
                 }).then(() => {
                     console.log(`Batterie wird ${direction} mit ${watts} W im Modus ${emMode} gesteuert.`);
-                    alert('Leistung und Richtung wurden angewendet.');
+                    alert('Leistung und Richtung wurde gesetzt.');
                 }).catch((error) => {
                     console.error('Fehler beim Setzen der Batterie-Leistung:', error);
                     alert('Fehler beim Setzen der Batterie-Leistung.');
