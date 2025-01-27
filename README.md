@@ -183,7 +183,7 @@ The following sensors can be read from various API endpoints. Each sensor includ
 ## Example YAML Configuration (Manual)
 If you want a sensor for charge and discharge energy for using in energy dashboard, add the following to your `configuration.yaml` file:
 
-```yaml (Ensure to change the prefix if using you own customized prefix)
+```yaml (Ensure to change the prefix if using own customized prefix)
 sensor:
   - name: "Sonnen Charge Power"
       unique_id: "sonnen_charge_power"
