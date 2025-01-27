@@ -67,9 +67,7 @@ Modes:
 ## Sensors Provided
 This integration provides the following sensors:
 
-# Auslesbare Daten
-
-## Übersicht der Sensoren
+## Overview supported sensors
 
 The following sensors can be read from various API endpoints. Each sensor includes the name, the key (key), the unit, and an optional device class (device_class).
 
@@ -107,9 +105,6 @@ The following sensors can be read from various API endpoints. Each sensor includ
 - Total Active Power (`Pac_total_W`): W (device_class: `power`)
 - Discharge Not Allowed (`dischargeNotAllowed`)
 - Generator Auto Start (`generator_autostart`)
-- Apparent Power Phase 1 (`Sac1`): VA (device_class: `power`)
-- Apparent Power Phase 2 (`Sac2`): VA (device_class: `power`)
-- Apparent Power Phase 3 (`Sac3`): VA (device_class: `power`)
 - Timestamp (`Timestamp`) (device_class: `timestamp`)
 - System Installation Status (`IsSystemInstalled`)
 - Operating Mode (`OperatingMode`)
