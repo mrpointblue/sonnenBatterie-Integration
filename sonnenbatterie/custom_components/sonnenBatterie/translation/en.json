@@ -25,6 +25,7 @@
     "test_mode": "Test Mode",
     "extension_mode": "Extension Mode",
     "time_of_use": "Time Of Use",
+    "automatic_optimization": "automatic",
     "mode_set_success": "Operating mode successfully set.",
     "mode_set_error": "Error setting the operating mode.",
     "power_set_success": "Power and direction successfully set.",
