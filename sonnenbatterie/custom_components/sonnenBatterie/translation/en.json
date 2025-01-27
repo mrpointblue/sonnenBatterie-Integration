@@ -18,7 +18,7 @@
     "direction": "Direction",
     "charge": "Charge",
     "discharge": "Discharge",
-    "power": "Power (W)",
+    "power": "Power",
     "apply": "Apply",
     "manuell": "Manual",
     "optimization": "Self-Consumption Optimization",
@@ -28,6 +28,11 @@
     "mode_set_success": "Operating mode successfully set.",
     "mode_set_error": "Error setting the operating mode.",
     "power_set_success": "Power and direction successfully set.",
-    "power_set_error": "Error setting power and direction."
+    "power_set_error": "Error setting power and direction.",
+    "loading": "Loading...",
+    "unknown": "Unknown",
+    "error": "Error",
+    "invalid_power": "Invalid power. Please enter a valid value.",
+    "power_exceeds_max": "The power exceeds the maximum limit of {max} W."
   }
 }
