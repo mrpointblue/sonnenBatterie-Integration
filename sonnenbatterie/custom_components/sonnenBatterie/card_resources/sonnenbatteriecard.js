@@ -1,4 +1,11 @@
 class SonnenBatteryCard extends HTMLElement {
+    // Konfigurationsmethode
+    setConfig(config) {
+        console.log("Konfiguration empfangen:", config);
+        this.config = config; // Speichere die Konfiguration
+    }
+
+    // Wird aufgerufen, wenn Home Assistant-Daten aktualisiert werden
     set hass(hass) {
         if (!this.content) {
             this.innerHTML = `
@@ -35,20 +42,12 @@ class SonnenBatteryCard extends HTMLElement {
             `;
             this.content = this.querySelector('ha-card');
 
-            // Speichere die Entität (aktueller Status des Operating Modes)
-            const entityId = this.config.entity; // Entität aus der Konfiguration
             const emSelect = this.querySelector('#em_operating_mode');
-            
-            // Aktuellen Status des Operating Modes abrufen
-            const entityState = hass.states[entityId];
-            if (entityState) {
-                const currentMode = entityState.state;
-                emSelect.value = currentMode; // Setze den aktuellen Status
-            }
 
             // Event-Handler für Operating Mode
             this.querySelector('#set_em_mode').addEventListener('click', () => {
                 const emMode = parseInt(emSelect.value, 10);
+                console.log('Setze Mode:', emMode);
 
                 // Service-Aufruf für den EM_OperatingMode
                 hass.callService('sonnenbatterie', 'set_em_operating_mode', {
@@ -66,7 +65,9 @@ class SonnenBatteryCard extends HTMLElement {
             this.querySelector('#set_power').addEventListener('click', () => {
                 const direction = this.querySelector('#direction').value;
                 const watts = parseInt(this.querySelector('#watts').value, 10);
-                const emMode = parseInt(emSelect.value, 10); // Den aktuellen Mode vom Dropdown übernehmen
+                const emMode = parseInt(emSelect.value, 10);
+
+                console.log(`Leistung anwenden: Mode=${emMode}, Richtung=${direction}, Leistung=${watts}`);
 
                 // Eingabevalidierung
                 if (isNaN(watts) || watts < 0) {
@@ -90,16 +91,10 @@ class SonnenBatteryCard extends HTMLElement {
         }
     }
 
-    setConfig(config) {
-        if (!config.entity) {
-            throw new Error("Die Konfiguration erfordert die Angabe einer 'entity', die den aktuellen EM_OperatingMode darstellt.");
-        }
-        this.config = config;
-    }
-
     getCardSize() {
-        return 3;
+        return 3; // Größe der Karte in Reihen
     }
 }
 
+// Karte registrieren - Der Name muss exakt mit dem YAML-Typ übereinstimmen
 customElements.define('sonnenbatterie-card', SonnenBatteryCard);
