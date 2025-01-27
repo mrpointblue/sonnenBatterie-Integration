@@ -63,10 +63,6 @@ Modes:
 "6": "Extension Mode",
 "10": "Time Of Use",
 
-
-## Sensors Provided
-This integration provides the following sensors:
-
 ## Overview supported sensors
 
 The following sensors can be read from various API endpoints. Each sensor includes the name, the key (key), the unit, and an optional device class (device_class).
