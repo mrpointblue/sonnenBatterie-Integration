@@ -64,7 +64,6 @@ async def set_battery_power(ip: str, token: str, direction: str, watts: int) -> 
         "Auth-Token": token,
         "Content-Type": "application/x-www-form-urlencoded"
     }
-    # Kein zusätzliches Payload notwendig, da Parameter in der URL enthalten sind
 
     _LOGGER.debug(f"Sende POST-Anfrage an {url} mit direction={direction} und watts={watts}")
 
