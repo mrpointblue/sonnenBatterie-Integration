@@ -56,6 +56,12 @@ service example via YAML:
 action: sonnenbatterie.set_em_operating_mode
 mode: 1
 
+Modes:
+"1": "Manuall",
+"2": "Self Consumption",
+"4": "Test",
+"6": "Extension Mode",
+"10": "Time Of Use",
 
 
 ## Sensors Provided
