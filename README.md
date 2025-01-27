@@ -222,8 +222,9 @@ sensor:
 ```
 
 ## Known Issues
-- Ensure the `JSON API for Reading` is enabled in the SonnenBatterie dashboard.
-- If no data appears, verify the IP address and token entered in the integration.
+- No Data >> Ensure the `JSON API for Reading` is enabled in the SonnenBatterie dashboard.
+- No Data >> If no data appears, verify the IP address and token entered in the integration.
+- Charging / Discharging not possible Ensure the `JSON API for Write` is enabled in the SonnenBatterie dashboard.
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.
