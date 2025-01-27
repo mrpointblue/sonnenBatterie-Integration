@@ -8,13 +8,11 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - State of charge (SOC) monitoring for the battery.
 - Energy import/export monitoring.
 - Integrates custom prefix
+- Write OperatingMode & power for charge or discharge
 
 ## Recommendation
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   https://github.com/flixlix/power-flow-card-plus
-
-## Not Supported
-- Writing not possible / Only Reading
 
 ## Compatibility
 This integration works with SonnenBatterie systems starting from the Eco8 generation and newer.
@@ -48,6 +46,17 @@ Actual known Hardware Systems (More possible):
 2. Click `Add Integration` and search for `SonnenBatterie`.
 3. Enter the IP address of your SonnenBatterie and the token obtained from the dashboard.
 4. If you want: Create a custom prefix. For example use your serialnumber of the battery system. Default is "sonnen".
+
+## Custom Card
+Integration comes with a custom card to set Operating Mode and charge or discharge power
+
+<img width="460" alt="Bildschirmfoto 2025-01-27 um 21 10 29" src="https://github.com/user-attachments/assets/3e673b32-4c1e-4f1f-b966-bbc75b93c648" />
+
+service example via YAML:
+action: sonnenbatterie.set_em_operating_mode
+mode: 1
+
+
 
 ## Sensors Provided
 This integration provides the following sensors:
