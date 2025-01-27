@@ -6,7 +6,7 @@ from .const import DOMAIN
 from .const import DEFAULT_PREFIX
 
 class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain="sonnenbatterie"):
-    """Handle a config flow for Sonnenbatterie."""
+    """Handle a config flow for SonnenBatterie."""
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -23,7 +23,7 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain="sonnenbatterie
                 errors["scan_interval"] = "too_short"
             else:
                 return self.async_create_entry(
-                    title="Sonnenbatterie",
+                    title="SonnenBatterie",
                     data={
                         "ip_address": ip,
                         "token": token,
