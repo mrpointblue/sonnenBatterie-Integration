@@ -6,6 +6,8 @@ import voluptuous as vol
 from .battery_control import set_em_operating_mode, set_battery_power
 
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.debug("Service set_battery_power registered")
+_LOGGER.debug("Service set_em_operating_mode registered")
 
 DOMAIN = "sonnenbatterie"
 
@@ -19,6 +21,7 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         """
         direction = call.data.get("direction")
         watts = call.data.get("watts", 1000)  # Standardwert: 1000 Watt
+        mode = call.data.get("mode", 2)  # Standard-Mode ist 2, falls kein Wert angegeben wird
 
         # Validierung der Eingabe
         if direction not in ["charge", "discharge"]:
@@ -29,11 +32,11 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
             _LOGGER.error(f"Ungültiger Watt-Wert: {watts}. Muss größer oder gleich 0 sein.")
             return
 
-        # 1. EM_OperatingMode auf 1 setzen
-        _LOGGER.debug("Setze EM_OperatingMode auf 1.")
-        success = await set_em_operating_mode(ip, token, mode=1)
+        # 1. EM_OperatingMode setzen
+        _LOGGER.debug(f"Setze EM_OperatingMode auf: {mode}.")
+        success = await set_em_operating_mode(ip, token, mode=mode)
         if not success:
-            _LOGGER.error("EM_OperatingMode konnte nicht gesetzt werden.")
+            _LOGGER.error(f"EM_OperatingMode konnte nicht auf {mode} gesetzt werden.")
             return
 
         # 2. Batterie laden oder entladen
@@ -48,7 +51,7 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         """
         Service-Handler für das Setzen des EM_OperatingMode.
         """
-        mode = call.data.get("mode", 1)  # Standardwert: 1 (Manuell)
+        mode = call.data.get("mode", 2)  # Standard-Mode ist 2
 
         # EM_OperatingMode setzen
         _LOGGER.debug(f"Setze EM_OperatingMode auf: {mode}")
@@ -66,6 +69,7 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         schema=vol.Schema({
             vol.Required("direction"): vol.In(["charge", "discharge"]),  # Nur 'charge' oder 'discharge' erlaubt
             vol.Required("watts"): vol.All(vol.Coerce(int), vol.Range(min=0)),  # Leistung ≥ 0
+            vol.Optional("mode"): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),  # Optionaler Mode (1-10)
         }),
     )
 
