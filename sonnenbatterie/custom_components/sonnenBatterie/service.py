@@ -69,7 +69,7 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         schema=vol.Schema({
             vol.Required("direction"): vol.In(["charge", "discharge"]),  # Nur 'charge' oder 'discharge' erlaubt
             vol.Required("watts"): vol.All(vol.Coerce(int), vol.Range(min=0)),  # Leistung ≥ 0
-            vol.Optional("mode"): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),  # Optionaler Mode (1-10)
+            vol.Optional("mode"): vol.All(vol.Coerce(int), vol.Range(min=1, max=11)),  # Optionaler Mode (1-11)
         }),
     )
 
@@ -79,7 +79,8 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         "set_em_operating_mode",
         handle_set_em_operating_mode,
         schema=vol.Schema({
-            vol.Required("mode"): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),  # Wertebereich: 1-10
+            vol.Required("entry_id"): cv.string,
+            vol.Required("mode"): vol.All(vol.Coerce(int), vol.Range(min=1, max=11)),  # Wertebereich: 1-11
         }),
     )
 
