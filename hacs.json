@@ -1,8 +1,5 @@
 {
-    "name": "sonnenBatterie",
-    "content_in_root": false,
-    "domains": ["sonnenbatterie"],
-    "country": ["DE", "US"],
-    "iot_class": "local_polling",
-    "render_readme": true
-  }
+  "name": "sonnenBatterie",
+  "content_in_root": false,
+  "render_readme": true
+}
