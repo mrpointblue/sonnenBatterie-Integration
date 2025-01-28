@@ -60,7 +60,6 @@ mode: 1
 Modes:
 - "1": "Manuall",
 - "2": "Self Consumption",
-- "4": "Test",
 - "6": "Extension Mode",
 - "10": "Time Of Use",
 
@@ -226,6 +225,7 @@ sensor:
 - No Data >> Ensure the `JSON API for Reading` is enabled in the SonnenBatterie dashboard.
 - No Data >> If no data appears, verify the IP address and token entered in the integration.
 - Charging / Discharging not possible Ensure the `JSON API for Write` is enabled in the SonnenBatterie dashboard.
+- Mode 11 and 4 not supported by API
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.
