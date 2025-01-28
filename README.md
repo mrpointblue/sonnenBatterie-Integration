@@ -48,9 +48,14 @@ Actual known Hardware Systems (More possible):
 4. If you want: Create a custom prefix. For example use your serialnumber of the battery system. Default is "sonnen".
 
 ## Custom Card
-Integration comes with a custom card to set Operating Mode and charge or discharge power
+Integration comes with a custom card to set Operating Mode, charge or discharge power
 
 <img width="460" alt="Bildschirmfoto 2025-01-28 um 00 37 30" src="https://github.com/user-attachments/assets/0c76e236-5851-463c-9d63-dc4dee9231d3" />
+
+Add the card manually to your dashboard.
+Use Yaml:
+
+type: custom:sonnenbatterie-card
 
 
 service example via YAML:
