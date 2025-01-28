@@ -232,6 +232,7 @@ sensor:
 - No Data >> If no data appears, verify the IP address and token entered in the integration.
 - Charging / Discharging not possible Ensure the `JSON API for Write` is enabled in the SonnenBatterie dashboard.
 - Mode 11 and 4 not supported by API
+- The current integration can only control one battery. Multiple batteries are not supported and may cause control issues.
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.
