@@ -1,3 +1,6 @@
+![HASS Build](https://github.com/mrpointblue/sonnenBatterie-Integration/workflows/hassfest/badge.svg)
+![HACS Build](https://github.com/mrpointblue/sonnenBatterie-Integration/workflows/hacs/badge.svg)
+
 # SonnenBatterie Integration for Home Assistant
 
 This custom integration allows you to monitor and control your SonnenBatterie system via Home Assistant. It provides detailed sensor data such as power consumption, production, and battery state.
@@ -35,6 +38,9 @@ Actual known Hardware Systems (More possible):
 
 
 ## Installation
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=mrpointblue&repository=sonnenBatterie-Integration&category=integration)
+
 1. Clone this repository into your Home Assistant `custom_components` directory:
    ```bash
    git clone https://github.com/mrpointblue/sonnenBatterie custom_components/sonnen_battery
