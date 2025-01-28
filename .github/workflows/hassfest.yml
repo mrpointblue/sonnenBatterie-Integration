@@ -23,4 +23,4 @@ jobs:
         run: pip install homeassistant hassfest
 
       - name: Run hassfest
-        run: hassfest
+        run: hassfest --debug
