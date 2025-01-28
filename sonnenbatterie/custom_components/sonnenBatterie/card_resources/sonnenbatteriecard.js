@@ -9,18 +9,16 @@ class SonnenBatteryCard extends HTMLElement {
                 <style>
                     ha-card {
                         padding: 16px;
-                        border-radius: var(--ha-card-border-radius, 10px);
-                        box-shadow: var(--ha-card-box-shadow, 0 4px 6px rgba(0, 0, 0, 0.1));
-                        background-color: var(--card-background-color);
-                        color: var(--primary-text-color);
-                        font-family: var(--primary-font-family, Arial, sans-serif);
+                        border-radius: 10px;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        background-color: var(--card-background-color, white);
+                        color: var(--primary-text-color, black);
                     }
 
                     .header {
                         font-size: 1.5em;
                         font-weight: bold;
                         margin-bottom: 16px;
-                        color: var(--primary-text-color);
                     }
 
                     .row {
@@ -34,37 +32,43 @@ class SonnenBatteryCard extends HTMLElement {
                         font-size: 1em;
                         font-weight: 500;
                         flex: 1;
-                        color: var(--primary-text-color);
                     }
 
                     select, input {
                         flex: 2;
                         padding: 8px;
                         font-size: 1em;
-                        border: 1px solid var(--divider-color);
-                        border-radius: var(--input-border-radius, 5px);
-                        background-color: var(--input-fill-color);
-                        color: var(--primary-text-color);
+                        border: 1px solid var(--divider-color, #ccc);
+                        border-radius: 5px;
+                        background-color: var(--input-background-color, var(--card-background-color, white));
+                        color: var(--primary-text-color, black);
                     }
 
                     button {
                         padding: 8px 12px;
                         font-size: 1em;
                         font-weight: bold;
-                        color: var(--text-primary-color);
-                        background-color: var(--primary-color);
+                        color: var(--text-primary-color, white);
+                        background-color: var(--primary-color, #007bff);
                         border: none;
-                        border-radius: var(--button-border-radius, 5px);
+                        border-radius: 5px;
                         cursor: pointer;
                         transition: background-color 0.3s ease;
                     }
 
                     button:hover {
-                        background-color: var(--primary-color-hover);
+                        background-color: var(--primary-color-hover, #0056b3);
                     }
 
                     .section {
                         margin-bottom: 24px;
+                    }
+
+                    .max-power {
+                        font-size: 0.9em;
+                        color: var(--secondary-text-color, gray);
+                        margin-top: -12px;
+                        margin-bottom: 16px;
                     }
                 </style>
 
@@ -96,9 +100,10 @@ class SonnenBatteryCard extends HTMLElement {
                         </div>
 
                         <div class="row">
-                            <label id="max_power_label">Maximale Leistung: Unbekannt</label>
+                            <label for="watts">Leistung (W):</label>
                             <input type="number" id="watts" min="0" value="1000" />
                         </div>
+                        <div id="max_power_label" class="max-power">Maximale Leistung: Lade...</div>
 
                         <button id="set_power">Leistung Anwenden</button>
                     </div>
@@ -106,9 +111,10 @@ class SonnenBatteryCard extends HTMLElement {
             `;
             this.content = this.querySelector('ha-card');
 
-            // Dynamischer Abruf der maximalen Leistung
-            const wattsLabel = this.querySelector('#max_power_label');
-            this._updateMaxPowerLabel(hass, wattsLabel);
+            const maxPowerLabel = this.querySelector("#max_power_label");
+
+            // Hole die maximale Leistung und aktualisiere das Label
+            this._updateMaxPowerLabel(hass, maxPowerLabel);
 
             // Event-Handler für Betriebsmodus
             this.querySelector('#set_em_mode').addEventListener('click', () => {
@@ -138,19 +144,14 @@ class SonnenBatteryCard extends HTMLElement {
         }
     }
 
-    async _updateMaxPowerLabel(hass, label) {
-        try {
-            // Hole die maximale Leistung aus einem Sensor in Home Assistant
-            const maxPowerEntity = 'sensor.sonnen_max_inverter_power';
-            const state = hass.states[maxPowerEntity];
-            if (state) {
-                label.textContent = `Maximale Leistung: ${state.state} W`;
-            } else {
-                label.textContent = 'Maximale Leistung: Unbekannt';
-            }
-        } catch (error) {
-            label.textContent = 'Fehler beim Abrufen der maximalen Leistung';
-            console.error('Fehler beim Abrufen der maximalen Leistung:', error);
+    _updateMaxPowerLabel(hass, label) {
+        const maxPowerEntity = 'sensor.sonnen_max_inverter_power';
+        const state = hass.states[maxPowerEntity];
+
+        if (state && state.state) {
+            label.textContent = `Maximale Leistung: ${state.state} W`;
+        } else {
+            label.textContent = "Maximale Leistung: Nicht verfügbar";
         }
     }
 
