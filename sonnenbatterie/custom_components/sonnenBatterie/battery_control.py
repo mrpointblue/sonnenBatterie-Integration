@@ -22,11 +22,11 @@ async def set_em_operating_mode(ip: str, token: str, mode: int) -> bool:
     # URL-encoded payload
     payload = {"EM_OperatingMode": str(mode)}
 
-    _LOGGER.debug(f"Sende POST-Anfrage an {url} mit payload: {payload}")
+    _LOGGER.debug(f"Sende PUT-Anfrage an {url} mit payload: {payload}")
 
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.post(url, data=payload, headers=headers) as response:
+            async with session.put(url, data=payload, headers=headers) as response:
                 if response.status == 200:
                     _LOGGER.info(f"EM_OperatingMode erfolgreich auf {mode} gesetzt.")
                     return True
@@ -51,12 +51,13 @@ async def set_battery_power(ip: str, token: str, direction: str, watts: int) -> 
     :param watts: Leistung in Watt (≥ 0).
     :return: True, wenn erfolgreich, sonst False.
     """
+    # Eingabevalidierung
     if direction not in ["charge", "discharge"]:
         _LOGGER.error("Ungültige Richtung. Verwenden Sie 'charge' oder 'discharge'.")
         return False
 
-    if watts < 0:
-        _LOGGER.error("Watt-Leistung muss größer oder gleich 0 sein.")
+    if watts <= 0:
+        _LOGGER.error("Watt-Leistung muss größer als 0 sein.")
         return False
 
     url = f"{API_BASE_URL.format(ip=ip)}/setpoint/{direction}/{watts}"
