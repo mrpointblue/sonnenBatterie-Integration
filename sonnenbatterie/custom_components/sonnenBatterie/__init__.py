@@ -1,5 +1,5 @@
 import os
-import shutil
+import aiofiles
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -11,10 +11,9 @@ from .service import async_register_services
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.info("Die sonnenbatterie-Integration wird geladen...")
 
-CARD_FILE_NAME = "sonnenbatterie-card.js"
+CARD_FILE_NAME = "sonnenbatteriecard.js"
 CARD_SOURCE_FOLDER = "custom_components/sonnenbatterie/card_resources"
 CARD_TARGET_FOLDER = "www"
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the sonnenbatterie integration for sensor readings and services."""
@@ -31,11 +30,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Registriere die Karte als Lovelace-Ressource
         await add_lovelace_resource(hass, f"/local/{CARD_FILE_NAME}")
+        
+        # Hole die benötigten Daten aus der Konfiguration
+        config = entry.data
+        ip = config.get("ip_address")
+        token = config.get("token")
+
+        if not ip or not token:
+            _LOGGER.error("Die Konfiguration erfordert 'ip_address' und 'token'.")
+            return False
 
         # Register services
-        ip = entry.data.get("ip_address")
-        token = entry.data.get("token")
-        await async_register_services(hass, entry.data, ip, token)
+        await async_register_services(hass, config, ip, token)
 
         _LOGGER.info("Sonnenbatterie integration successfully set up.")
         return True
@@ -77,21 +83,36 @@ async def async_update_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def copy_card_to_www(hass: HomeAssistant) -> bool:
     """
-    Kopiert die benutzerdefinierte Karte in den www-Ordner.
+    Kopiert die benutzerdefinierte Karte in den www-Ordner auf asynchrone Weise.
     """
     try:
         source_path = os.path.join(hass.config.path(), CARD_SOURCE_FOLDER, CARD_FILE_NAME)
         target_path = os.path.join(hass.config.path(), CARD_TARGET_FOLDER, CARD_FILE_NAME)
 
-        # Sicherstellen, dass der www-Ordner existiert
+        # Prüfe, ob die Quellkarte existiert
+        if not os.path.exists(source_path):
+            _LOGGER.error(f"Kartenquelle nicht gefunden: {source_path}")
+            return False
+
+        # Stelle sicher, dass der Zielordner existiert
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
 
-        # Karte kopieren
-        shutil.copyfile(source_path, target_path)
+        # Asynchrones Kopieren der Karte
+        async with aiofiles.open(source_path, "rb") as src:
+            async with aiofiles.open(target_path, "wb") as dest:
+                while chunk := await src.read(1024 * 64):  # Lese und schreibe in 64KB-Blöcken
+                    await dest.write(chunk)
+
         _LOGGER.info(f"Karte erfolgreich kopiert: {target_path}")
         return True
+    except FileNotFoundError as e:
+        _LOGGER.error(f"Kartenquelle nicht gefunden: {e}")
+        return False
+    except PermissionError as e:
+        _LOGGER.error(f"Keine Berechtigung, die Karte zu kopieren: {e}")
+        return False
     except Exception as e:
-        _LOGGER.error(f"Fehler beim Kopieren der Karte: {e}")
+        _LOGGER.error(f"Unbekannter Fehler beim Kopieren der Karte: {e}")
         return False
 
 
