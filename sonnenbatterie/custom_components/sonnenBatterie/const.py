@@ -96,8 +96,6 @@ SENSORS = [
 OPERATING_MODES = {
     "1": "Manuell",
     "2": "Eigenverbrauchsoptimierung",
-    "4": "Testbetrieb",
     "6": "Erweiterungsmodus",
     "10": "Time Of Use",
-    "11": "Automatik"
 }
