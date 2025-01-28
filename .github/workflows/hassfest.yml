@@ -25,10 +25,13 @@ jobs:
       - name: Clone Home Assistant Core repository
         run: git clone --depth 1 https://github.com/home-assistant/core.git /tmp/home-assistant-core
 
-      - name: Remove incompatible accuweather dependency
-        run: sed -i '/accuweather==4.0.0/d' /tmp/home-assistant-core/requirements_test_all.txt
+      - name: Remove incompatible aioacaia dependency
+        run: sed -i '/aioacaia==0.1.14/d' /tmp/home-assistant-core/requirements_test_all.txt
 
-      - name: Install test dependencies
+      - name: Install specific aioacaia version
+        run: pip install aioacaia==0.1.7
+
+      - name: Install remaining dependencies
         run: pip install -r /tmp/home-assistant-core/requirements_test_all.txt
 
       - name: Run hassfest
