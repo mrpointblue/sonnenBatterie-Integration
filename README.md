@@ -50,14 +50,15 @@ Actual known Hardware Systems (More possible):
 ## Custom Card
 Integration comes with a custom card to set Operating Mode, charge or discharge power
 
-<img width="460" alt="Bildschirmfoto 2025-01-28 um 00 37 30" src="https://github.com/user-attachments/assets/0c76e236-5851-463c-9d63-dc4dee9231d3" />
+<img width="447" alt="Bildschirmfoto 2025-01-28 um 23 25 55" src="https://github.com/user-attachments/assets/b4b2be9c-0ad9-4911-a16b-6726fb3b68c8" />
+
 
 Add the card manually to your dashboard.
-Use Yaml:
 
+```yaml
 type: custom:sonnenbatterie-card
 
-
+```
 service example via YAML:
 action: sonnenbatterie.set_em_operating_mode
 mode: 1
