@@ -18,10 +18,8 @@ class SonnenBatteryCard extends HTMLElement {
                             <select id="em_operating_mode">
                                 <option value="1">${this._localize(hass, 'ui.manuell', 'Manuell')}</option>
                                 <option value="2">${this._localize(hass, 'ui.optimization', 'Eigenverbrauchsoptimierung')}</option>
-                                <option value="4">${this._localize(hass, 'ui.test_mode', 'Testbetrieb')}</option>
                                 <option value="6">${this._localize(hass, 'ui.extension_mode', 'Erweiterungsmodus')}</option>
                                 <option value="10">${this._localize(hass, 'ui.time_of_use', 'Time Of Use')}</option>
-                                <option value="11">${this._localize(hass, 'ui.automatic_optimization', 'Automatik')}</option>
                             </select>
                             <button id="set_em_mode">${this._localize(hass, 'ui.apply', 'Setzen')}</button>
                         </div>
