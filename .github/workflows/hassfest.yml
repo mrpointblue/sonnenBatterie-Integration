@@ -17,10 +17,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.12"
+          python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install homeassistant hassfest
+      - name: Upgrade pip
+        run: pip install --upgrade pip setuptools wheel
+
+      - name: Install hassfest from GitHub
+        run: pip install git+https://github.com/home-assistant/core.git#subdirectory=script/hassfest
 
       - name: Run hassfest
         run: hassfest --debug
