@@ -27,4 +27,4 @@ jobs:
 
       - name: Run hassfest
         working-directory: /tmp/home-assistant-core
-        run: python3 script/hassfest
+        run: python3 -m script.hassfest
