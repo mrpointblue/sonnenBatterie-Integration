@@ -22,8 +22,9 @@ jobs:
       - name: Upgrade pip
         run: pip install --upgrade pip setuptools wheel
 
-      - name: Install hassfest from GitHub
-        run: pip install git+https://github.com/home-assistant/core.git#subdirectory=script/hassfest
+      - name: Clone Home Assistant Core repository
+        run: git clone --depth 1 https://github.com/home-assistant/core.git /tmp/home-assistant-core
 
       - name: Run hassfest
-        run: hassfest --debug
+        working-directory: /tmp/home-assistant-core
+        run: python3 script/hassfest
