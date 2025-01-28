@@ -25,6 +25,9 @@ jobs:
       - name: Clone Home Assistant Core repository
         run: git clone --depth 1 https://github.com/home-assistant/core.git /tmp/home-assistant-core
 
+      - name: Install test dependencies
+        run: pip install -r /tmp/home-assistant-core/requirements_test_all.txt
+
       - name: Run hassfest
         working-directory: /tmp/home-assistant-core
         run: python3 -m script.hassfest
