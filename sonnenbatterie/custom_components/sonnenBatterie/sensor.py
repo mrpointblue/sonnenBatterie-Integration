@@ -2,6 +2,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
 import aiohttp
 import logging
 
@@ -20,34 +21,112 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
     token = config_entry.data["token"]
     scan_interval = config_entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
     custom_prefix = config_entry.data.get("custom_prefix", DEFAULT_PREFIX)
-    entities = [
-        SonnenBatterieSensor(sensor, ip, token, scan_interval, custom_prefix) for sensor in SENSORS
+
+    coordinator = SonnenDataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        ip=ip,
+        token=token,
+        update_interval=timedelta(seconds=max(scan_interval, MIN_SCAN_INTERVAL)),
+    )
+
+    await coordinator.async_config_entry_first_refresh()
+
+    sensors = [
+        SonnenBatterieSensor(coordinator, sensor, custom_prefix) for sensor in SENSORS
     ]
-    async_add_entities(entities, update_before_add=True)
+    async_add_entities(sensors)
 
 
-class SonnenBatterieSensor(Entity):
+class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
+    """Custom DataUpdateCoordinator to manage fetching data from multiple API endpoints."""
+
+    def __init__(self, hass, logger, ip, token, update_interval):
+        """Initialize the data update coordinator."""
+        self.ip = ip
+        self.token = token
+        self.data_cache = {}  # Cache for data from multiple endpoints
+        super().__init__(
+            hass,
+            logger,
+            name="SonnenDataUpdateCoordinator",
+            update_method=self._async_update_data,
+            update_interval=update_interval,
+        )
+
+    async def _async_update_data(self):
+        """Fetch data from the Sonnen API."""
+        headers = {
+            "User-Agent": "Home Assistant",
+            "Content-Type": "application/json",
+            "Auth-Token": self.token,
+        }
+
+        endpoints = [
+            "/api/v2/inverter",
+            "/api/v2/status",
+            "/api/v2/configurations",
+            "/api/v2/battery",
+            "/api/v2/powermeter",
+            "/api/v2/latestdata",
+        ]
+
+        results = {}
+        async with aiohttp.ClientSession() as session:
+            for endpoint in endpoints:
+                try:
+                    url = f"http://{self.ip}{endpoint}"
+                    async with session.get(url, headers=headers) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            results[endpoint] = data
+                        else:
+                            _LOGGER.warning(f"Failed to fetch data from {endpoint}: {response.status}")
+                except Exception as e:
+                    _LOGGER.error(f"Error fetching data from {endpoint}: {e}")
+
+        self.data_cache = results  # Store the fetched data
+        return results
+
+
+class SonnenBatterieSensor(CoordinatorEntity, Entity):
     """Representation of a Sonnenbatterie sensor."""
 
-    def __init__(self, sensor, ip, token, scan_interval, custom_prefix):
-        """
-        Initialize the sensor.
-        """
+    def __init__(self, coordinator, sensor, custom_prefix):
+        """Initialize the sensor."""
+        super().__init__(coordinator)
         self._name = f"{custom_prefix}_{sensor['name']}"
         self._key = sensor["key"]
         self._unit = sensor["unit"]
         self._device_class = sensor["device_class"]
         self._state_class = sensor.get("state_class")
         self._sensor_direction = sensor.get("direction")
-        self._state = None
-        self._ip = ip
-        self._token = token
-        self._scan_interval = max(scan_interval, MIN_SCAN_INTERVAL)
 
     @property
     def name(self):
         """Return the name of the sensor."""
         return self._name
+
+    @property
+    def state(self):
+        """Return the current state of the sensor."""
+        data = self.coordinator.data_cache
+        endpoint = self.determine_endpoint()
+
+        if endpoint in data:
+            endpoint_data = data[endpoint]
+            if isinstance(endpoint_data, dict) and self._key in endpoint_data:
+                return round(endpoint_data[self._key], 2) if isinstance(endpoint_data[self._key], (int, float)) else endpoint_data[self._key]
+            if isinstance(endpoint_data, list):
+                for entry in endpoint_data:
+                    if (
+                        self._sensor_direction
+                        and entry.get("direction") == self._sensor_direction
+                        and self._key in entry
+                    ):
+                        value = entry[self._key]
+                        return round(value, 2) if isinstance(value, (int, float)) else value
+        return None
 
     @property
     def extra_state_attributes(self):
@@ -58,11 +137,6 @@ class SonnenBatterieSensor(Entity):
         if self._sensor_direction:
             attributes["direction"] = self._sensor_direction
         return attributes
-
-    @property
-    def state(self):
-        """Return the current state of the sensor."""
-        return self._state
 
     @property
     def unit_of_measurement(self):
@@ -81,83 +155,18 @@ class SonnenBatterieSensor(Entity):
 
     @property
     def unique_id(self):
-        """Return a unique ID for the sensor based on its key, direction, and IP address."""
+        """Return a unique ID for the sensor."""
         direction_suffix = f"_{self._sensor_direction}" if self._sensor_direction else ""
-        return f"{self._name}_{self._ip}-{self._key}{direction_suffix}"
-
-    async def async_update(self):
-        """
-        Asynchronous update logic for fetching data from the appropriate endpoint.
-        """
-        headers = {
-            "User-Agent": "Home Assistant",
-            "Content-Type": "application/json",
-            "Auth-Token": self._token,
-        }
-
-        try:
-            # Determine the correct API endpoint for the sensor
-            url = self.determine_endpoint()
-
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers) as response:
-                    if response.status != 200:
-                        _LOGGER.warning(f"Error fetching data for {self._name}: {response.status}")
-                        self._state = None
-                        return
-
-                    data = await response.json()
-                    _LOGGER.debug(f"API response for {self._name}: {data}")
-
-            # Process powermeter data with direction filtering
-            if url.endswith("/powermeter"):
-                if isinstance(data, list):  # Ensure data is a list
-                    for entry in data:
-                        _LOGGER.debug(f"Processing powermeter entry: {entry}")
-                        if (
-                            self._sensor_direction
-                            and entry.get("direction") == self._sensor_direction
-                            and self._key in entry
-                        ):
-                            value = entry.get(self._key, 0)  # Default to 0 if key is missing
-                            self._state = round(value, 2) if isinstance(value, (int, float)) else value
-                            return
-                    _LOGGER.warning(
-                        f"Key '{self._key}' or direction '{self._sensor_direction}' not found in powermeter data for {self._name}."
-                    )
-                    self._state = None
-                else:
-                    _LOGGER.warning(f"Unexpected response format for powermeter: {type(data)}")
-                    self._state = None
-                return
-
-            # Handle other API endpoints with direct key lookup
-            elif isinstance(data, dict):  # Ensure data is a dictionary
-                value = data.get(self._key, None)
-                if value is None:
-                    _LOGGER.warning(f"Key '{self._key}' not found in API response for sensor '{self._name}'.")
-                    self._state = None
-                else:
-                    self._state = round(value, 2) if isinstance(value, (int, float)) else value
-            else:
-                _LOGGER.warning(f"Unexpected response format: {type(data)}")
-                self._state = None
-
-        except Exception as e:
-            self._state = None
-            _LOGGER.error(f"Error updating {self._name}: {e}")
+        return f"{self._name}_{self.coordinator.ip}-{self._key}{direction_suffix}"
 
     def determine_endpoint(self):
         """
         Determine the correct API endpoint based on the sensor key.
         """
-        # /api/v2/inverter
         if self._key in [
             "fac", "iac_total", "ibat", "ipv", "pac_microgrid", "pac_total", "pbat", "phi", "ppv", "sac_total", "tmax", "uac", "upv"
         ]:
-            return f"http://{self._ip}/api/v2/inverter"
-
-        # /api/v2/status
+            return "/api/v2/inverter"
         if self._key in [
             "Apparent_output", "BackupBuffer", "BatteryCharging", "BatteryDischarging",
             "Consumption_W", "Fac", "FlowConsumptionBattery", "FlowConsumptionGrid",
@@ -166,16 +175,12 @@ class SonnenBatterieSensor(Entity):
             "Pac_total_W", "Production_W", "RSOC", "SystemStatus", "Timestamp",
             "Uac", "Ubat", "dischargeNotAllowed", "generator_autostart"
         ]:
-            return f"http://{self._ip}/api/v2/status"
-
-        # /api/v2/configurations
+            return "/api/v2/status"
         if self._key in [
             "EM_OperatingMode", "IC_InverterMaxPower_w", "IC_BatteryModules", "NVM_PfcFixedCosPhi",
             "CM_MarketingModuleCapacity", "CN_CascadingRole", "DE_Software",
         ]:
-            return f"http://{self._ip}/api/v2/configurations"
-
-        # /api/v2/battery
+            return "/api/v2/configurations"
         if self._key in [
             "BatteryVoltage", "cyclecount", "BackupBuffer", "fullchargecapacity", "remainingcapacity",
             "systemdcvoltage", "systemcurrent", "maximumcelltemperature", "minimumcelltemperature",
@@ -183,22 +188,11 @@ class SonnenBatterieSensor(Entity):
             "minimummoduledcvoltage", "chargecurrentlimit", "dischargecurrentlimit",
             "systemstatus", "systemwarning"
         ]:
-            return f"http://{self._ip}/api/v2/battery"
-
-        # /api/v2/powermeter
+            return "/api/v2/battery"
         if self._key in [
             "va_total", "var_total", "w_l1", "w_l2", "w_l3", "w_total",
             "a_l1", "a_l2", "a_l3", "v_l1_n", "v_l2_n", "v_l3_n",
             "v_l1_l2", "v_l2_l3", "v_l3_l1", "kwh_exported", "kwh_imported",
         ]:
-            return f"http://{self._ip}/api/v2/powermeter"
-
-        # /api/v2/latestdata
-        if self._key in [
-            "Consumption_W", "FullChargeCapacity", "Production_W", "GridFeedIn_W", "USOC", "Pac_total_W",
-        ]:
-            return f"http://{self._ip}/api/v2/latestdata"
-
-        # Default fallback for unknown keys
-        else:
-            return f"http://{self._ip}/api/v2/latestdata"
+            return "/api/v2/powermeter"
+        return "/api/v2/latestdata"
