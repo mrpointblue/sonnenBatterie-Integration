@@ -1,6 +1,5 @@
 ![HASS Build](https://github.com/mrpointblue/sonnenBatterie-Integration/workflows/hassfest/badge.svg)
 [![hacs][hacs-shield]][hacs]
-[hacs-shield]: https://img.shields.io/badge/HACS-Default-green.svg?style=for-the-badge
 
 # SonnenBatterie Integration for Home Assistant
 
