@@ -1,4 +1,4 @@
-![HASS Build](https://github.com/mrpointblue/sonnenBatterie-Integration/workflows/hassfest/badge.svg)
+![HASS Build](https://github.com/mrpointblue/sonnenBatterie-Integration/workflows/hassfest/badge.svg) ![GitHub Downloads](https://img.shields.io/github/downloads/mrpointblue/sonnenBatterie-Integration/latest/total)
 
 # SonnenBatterie Integration for Home Assistant
 
