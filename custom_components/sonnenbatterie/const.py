@@ -74,8 +74,8 @@ SENSORS = [
     {"name": "Production Voltage L1-N", "key": "v_l1_n", "unit": "V", "device_class": "voltage", "direction": "production"},
     {"name": "Production Voltage L2-N", "key": "v_l2_n", "unit": "V", "device_class": "voltage", "direction": "production"},
     {"name": "Production Voltage L3-N", "key": "v_l3_n", "unit": "V", "device_class": "voltage", "direction": "production"},
-    {"name": "Production Energy Exported", "key": "kwh_exported", "unit": "kWh", "device_class": "energy", "state_class": "total_increasing", "direction": "production"},
-    {"name": "Production Energy Imported", "key": "kwh_imported", "unit": "kWh", "device_class": "energy", "state_class": "total_increasing", "direction": "production"},
+    {"name": "Production Energy Exported", "key": "kwh_exported", "unit": "kWh", "device_class": "energy", "state_class": "total", "direction": "production"},
+    {"name": "Production Energy Imported", "key": "kwh_imported", "unit": "kWh", "device_class": "energy", "state_class": "total", "direction": "production"},
 
     # Consumption Values
     {"name": "Consumption Power L1", "key": "w_l1", "unit": "W", "device_class": "power", "direction": "consumption"},
@@ -88,8 +88,8 @@ SENSORS = [
     {"name": "Consumption Voltage L1-N", "key": "v_l1_n", "unit": "V", "device_class": "voltage", "direction": "consumption"},
     {"name": "Consumption Voltage L2-N", "key": "v_l2_n", "unit": "V", "device_class": "voltage", "direction": "consumption"},
     {"name": "Consumption Voltage L3-N", "key": "v_l3_n", "unit": "V", "device_class": "voltage", "direction": "consumption"},
-    {"name": "Consumption Energy Exported", "key": "kwh_exported", "unit": "kWh", "device_class": "energy", "state_class": "total_increasing", "direction": "consumption"},
-    {"name": "Consumption Energy Imported", "key": "kwh_imported", "unit": "kWh", "device_class": "energy", "state_class": "total_increasing", "direction": "consumption"},
+    {"name": "Consumption Energy Exported", "key": "kwh_exported", "unit": "kWh", "device_class": "energy", "state_class": "total", "direction": "consumption"},
+    {"name": "Consumption Energy Imported", "key": "kwh_imported", "unit": "kWh", "device_class": "energy", "state_class": "total", "direction": "consumption"},
 ]
 
 # Mapping for EM_OperatingMode translation
