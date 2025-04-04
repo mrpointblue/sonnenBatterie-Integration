@@ -5,11 +5,11 @@ DEFAULT_PREFIX = "sonnen"
 # Definition of sensors and their corresponding keys
 SENSORS = [
     # Sensors from /api/v2/latestdata
-    {"name": "House Consumption", "key": "Consumption_W", "unit": "W", "device_class": "power"},
-    {"name": "Solar Production", "key": "Production_W", "unit": "W", "device_class": "power"},
-    {"name": "Grid Feed-In", "key": "GridFeedIn_W", "unit": "W", "device_class": "power"},
-    {"name": "Battery State of Charge", "key": "USOC", "unit": "%", "device_class": "battery"},
-    {"name": "AC Power", "key": "Pac_total_W", "unit": "W", "device_class": "power"},
+    {"name": "House Consumption", "key": "Consumption_W", "unit": "W", "device_class": "power", "state_class": "measurement"},
+    {"name": "Solar Production", "key": "Production_W", "unit": "W", "device_class": "power", "state_class": "measurement"},
+    {"name": "Grid Feed-In", "key": "GridFeedIn_W", "unit": "W", "device_class": "power", "state_class": "measurement"},
+    {"name": "Battery State of Charge", "key": "USOC", "unit": "%", "device_class": "battery", "state_class": "measurement"},
+    {"name": "AC Power", "key": "Pac_total_W", "unit": "W", "device_class": "power", "state_class": "measurement"},
 
     # Sensors from /api/v2/status
     {"name": "Apparent Output", "key": "Apparent_output", "unit": "VA", "device_class": None},
