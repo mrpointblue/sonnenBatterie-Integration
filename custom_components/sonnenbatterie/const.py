@@ -39,10 +39,12 @@ SENSORS = [
     {"name": "Operating Mode", "key": "OperatingMode", "unit": None, "device_class": None},
 
     # Sensors from /api/v2/inverter
-    {"name": "AC Frequency", "key": "fac", "unit": "Hz", "device_class": None},
-    {"name": "AC Current", "key": "iac_total", "unit": "A", "device_class": "current"},
-    {"name": "PV Power", "key": "ppv", "unit": "W", "device_class": "power"},
-    {"name": "Inverter Temperature", "key": "tmax", "unit": "°C", "device_class": "temperature"},
+    {"name": "AC Frequency", "key": "fac", "unit": "Hz", "device_class": None, "state_class": "measurement"},
+    {"name": "AC Current", "key": "iac_total", "unit": "A", "device_class": "current", "state_class": "measurement"},
+    {"name": "PV Power", "key": "ppv", "unit": "W", "device_class": "power", "state_class": "measurement"},
+    {"name": "Inverter Temperature", "key": "tmax", "unit": "°C", "device_class": "temperature", "state_class": "measurement"},
+    {"name": "PV Voltage", "key": "upv", "unit": "V", "device_class": "measurement", "state_class": "measurement"},
+    {"name": "PV Current", "key": "ipv", "unit": "A", "device_class": "measurement", "state_class": "measurement"},
 
     # Sensors from /api/v2/configurations
     {"name": "Operating Mode", "key": "EM_OperatingMode", "unit": None, "device_class": None},
