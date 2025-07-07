@@ -1,3 +1,5 @@
+# File: custom_components/sonnenbatterie/sensor.py
+
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -9,25 +11,29 @@ import logging
 from .const import DOMAIN, SENSORS, DEFAULT_PREFIX
 
 _LOGGER = logging.getLogger(__name__)
-DEFAULT_SCAN_INTERVAL = 30  # Default in Sekunden
-MIN_SCAN_INTERVAL = 5  # Minimum in Sekunden
+DEFAULT_SCAN_INTERVAL = 30
+MIN_SCAN_INTERVAL = 5
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
-    """
-    Asynchronous setup of sonnenbatterie sensors based on config entry.
-    """
-    ip = config_entry.data["ip_address"]
-    token = config_entry.data["token"]
-    scan_interval = config_entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
+    ip = config_entry.data.get("ip_address")
+    token = config_entry.data.get("token")
     custom_prefix = config_entry.data.get("custom_prefix", DEFAULT_PREFIX)
+
+    scan_interval = (
+        config_entry.options.get("scan_interval")
+        or config_entry.data.get("scan_interval")
+        or DEFAULT_SCAN_INTERVAL
+    )
+
+    scan_interval = max(scan_interval, MIN_SCAN_INTERVAL)
 
     coordinator = SonnenDataUpdateCoordinator(
         hass,
         _LOGGER,
         ip=ip,
         token=token,
-        update_interval=timedelta(seconds=max(scan_interval, MIN_SCAN_INTERVAL)),
+        update_interval=timedelta(seconds=scan_interval),
     )
 
     await coordinator.async_config_entry_first_refresh()
@@ -39,13 +45,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, asyn
 
 
 class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
-    """Custom DataUpdateCoordinator to manage fetching data from multiple API endpoints."""
-
     def __init__(self, hass, logger, ip, token, update_interval):
-        """Initialize the data update coordinator."""
         self.ip = ip
         self.token = token
-        self.data_cache = {}  # Cache for data from multiple endpoints
+        self.data_cache = {}
         super().__init__(
             hass,
             logger,
@@ -55,7 +58,6 @@ class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
     async def _async_update_data(self):
-        """Fetch data from the Sonnen API."""
         headers = {
             "User-Agent": "Home Assistant",
             "Content-Type": "application/json",
@@ -85,15 +87,12 @@ class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
                 except Exception as e:
                     _LOGGER.error(f"Error fetching data from {endpoint}: {e}")
 
-        self.data_cache = results  # Store the fetched data
+        self.data_cache = results
         return results
 
 
 class SonnenBatterieSensor(CoordinatorEntity, Entity):
-    """Representation of a Sonnenbatterie sensor."""
-
     def __init__(self, coordinator, sensor, custom_prefix):
-        """Initialize the sensor."""
         super().__init__(coordinator)
         self._name = f"{custom_prefix}_{sensor['name']}"
         self._key = sensor["key"]
@@ -104,19 +103,19 @@ class SonnenBatterieSensor(CoordinatorEntity, Entity):
 
     @property
     def name(self):
-        """Return the name of the sensor."""
         return self._name
 
     @property
     def state(self):
-        """Return the current state of the sensor."""
         data = self.coordinator.data_cache
         endpoint = self.determine_endpoint()
 
         if endpoint in data:
             endpoint_data = data[endpoint]
             if isinstance(endpoint_data, dict) and self._key in endpoint_data:
-                return round(endpoint_data[self._key], 2) if isinstance(endpoint_data[self._key], (int, float)) else endpoint_data[self._key]
+                value = endpoint_data[self._key]
+                return round(value, 2) if isinstance(value, (int, float)) else value
+
             if isinstance(endpoint_data, list):
                 for entry in endpoint_data:
                     if (
@@ -126,11 +125,11 @@ class SonnenBatterieSensor(CoordinatorEntity, Entity):
                     ):
                         value = entry[self._key]
                         return round(value, 2) if isinstance(value, (int, float)) else value
+
         return None
 
     @property
     def extra_state_attributes(self):
-        """Return the extra state attributes of the sensor."""
         attributes = {}
         if self._state_class:
             attributes["state_class"] = self._state_class
@@ -140,29 +139,22 @@ class SonnenBatterieSensor(CoordinatorEntity, Entity):
 
     @property
     def unit_of_measurement(self):
-        """Return the unit of measurement for the sensor."""
         return self._unit
 
     @property
     def device_class(self):
-        """Return the device class for the sensor."""
         return self._device_class
 
     @property
     def state_class(self):
-        """Return the state class of the sensor."""
         return self._state_class
 
     @property
     def unique_id(self):
-        """Return a unique ID for the sensor."""
         direction_suffix = f"_{self._sensor_direction}" if self._sensor_direction else ""
         return f"{self._name}_{self.coordinator.ip}-{self._key}{direction_suffix}"
 
     def determine_endpoint(self):
-        """
-        Determine the correct API endpoint based on the sensor key.
-        """
         if self._key in [
             "fac", "iac_total", "ibat", "ipv", "pac_microgrid", "pac_total", "pbat", "phi", "ppv", "sac_total", "tmax", "uac", "upv"
         ]:
