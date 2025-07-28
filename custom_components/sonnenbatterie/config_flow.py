@@ -8,9 +8,8 @@ from .const import DOMAIN, DEFAULT_PREFIX
 DEFAULT_SCAN_INTERVAL = 30
 MIN_SCAN_INTERVAL = 5
 
-
-class SonnenBatterieConfigFlow(config_entries.ConfigFlow):
-    """Handle the configuration flow for SonnenBatterie."""
+class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle the config flow for the SonnenBatterie integration."""
 
     VERSION = 1
 
@@ -29,12 +28,10 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow):
                 vol.Optional("custom_prefix", default=DEFAULT_PREFIX): cv.string,
             }
         )
-
         return self.async_show_form(step_id="user", data_schema=schema)
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
         from .options_flow import SonnenOptionsFlow
-
         return SonnenOptionsFlow(config_entry)
