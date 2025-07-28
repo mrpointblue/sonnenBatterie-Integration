@@ -1,4 +1,4 @@
-# File: custom_components/sonnenbatterie/sensor.py
+# File: custom_components/sonnenbatterie/config_flow.py
 
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
