@@ -9,7 +9,6 @@ from .const import DOMAIN
 from .service import async_register_services
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.info("Die sonnenbatterie-Integration wird geladen...")
 
 CARD_FILE_NAME = "sonnenbatteriecard.js"
 CARD_SOURCE_FOLDER = "custom_components/sonnenbatterie/card_resources"
@@ -17,6 +16,7 @@ CARD_TARGET_FOLDER = "www"
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the sonnenbatterie integration for sensor readings and services."""
+    _LOGGER.info("Die sonnenbatterie-Integration wird geladen...")
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {}
 
