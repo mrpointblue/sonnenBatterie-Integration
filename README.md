@@ -85,31 +85,31 @@ The following sensors can be read from various API endpoints. Each sensor includ
 - Solar Production (`Production_W`): W (device_class: `power`)
 - Grid Feed-In (`GridFeedIn_W`): W (device_class: `power`)
 - Battery State of Charge (`USOC`): % (device_class: `battery`)
-- AC Power (`Pac_total_W`): W (device_class: `power`)
+- AC Power (`Pac_total_W`): W (device_class: `power`, positive = discharging, negative = charging)
 
 ---
 
 ### **Sensors from `/api/v2/status`**
 - Apparent Output (`Apparent_output`): VA
 - Backup Buffer (`BackupBuffer`): % (device_class: `battery`)
-- Battery Charging (`BatteryCharging`)
-- Battery Discharging (`BatteryDischarging`)
+- Battery Charging (`BatteryCharging`): 1 when charging, 0 otherwise
+- Battery Discharging (`BatteryDischarging`): 1 when discharging, 0 otherwise
 - System Status (`SystemStatus`)
 - AC Voltage (`Uac`): V (device_class: `voltage`)
 - Battery Voltage (`Ubat`): V (device_class: `voltage`)
 - Frequency (`Fac`): Hz
-- Flow Consumption Battery (`FlowConsumptionBattery`)
-- Flow Consumption Grid (`FlowConsumptionGrid`)
-- Flow Consumption Production (`FlowConsumptionProduction`)
-- Flow Grid Battery (`FlowGridBattery`)
-- Flow Production Battery (`FlowProductionBattery`)
-- Flow Production Grid (`FlowProductionGrid`)
+- Flow Consumption Battery (`FlowConsumptionBattery`): 1 if the home draws from the battery (else 0)
+- Flow Consumption Grid (`FlowConsumptionGrid`): 1 if the home draws from the grid (else 0)
+- Flow Consumption Production (`FlowConsumptionProduction`): 1 if the home uses solar directly (else 0)
+- Flow Grid Battery (`FlowGridBattery`): 1 when charging the battery from the grid (else 0)
+- Flow Production Battery (`FlowProductionBattery`): 1 when charging the battery from solar (else 0)
+- Flow Production Grid (`FlowProductionGrid`): 1 when solar feeds into the grid (else 0)
 - Grid Feed-In Power (`GridFeedIn_W`): W (device_class: `power`)
 - Total Power Consumption (`Consumption_W`): W (device_class: `power`)
 - Total Power Production (`Production_W`): W (device_class: `power`)
 - Remaining State of Charge (`RSOC`): % (device_class: `battery`)
 - State of Charge (`USOC`): % (device_class: `battery`)
-- Total Active Power (`Pac_total_W`): W (device_class: `power`)
+- Total Active Power (`Pac_total_W`): W (device_class: `power`, positive = discharging, negative = charging)
 - Discharge Not Allowed (`dischargeNotAllowed`)
 - Generator Auto Start (`generator_autostart`)
 - Timestamp (`Timestamp`) (device_class: `timestamp`)
