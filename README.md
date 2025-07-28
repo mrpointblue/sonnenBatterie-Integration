@@ -69,7 +69,7 @@ action: sonnenbatterie.set_em_operating_mode
 mode: 1
 
 Modes:
-- "1": "Manuall",
+- "1": "Manual",
 - "2": "Self Consumption",
 - "6": "Extension Mode",
 - "10": "Time Of Use",
