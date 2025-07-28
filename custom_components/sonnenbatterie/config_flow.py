@@ -8,13 +8,13 @@ from .const import DOMAIN, DEFAULT_PREFIX
 DEFAULT_SCAN_INTERVAL = 30
 MIN_SCAN_INTERVAL = 5
 
-
 class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle the config flow for the SonnenBatterie integration."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
+        """Handle a flow initiated by the user."""
         if user_input is not None:
             return self.async_create_entry(title="SonnenBatterie", data=user_input)
 
@@ -34,5 +34,4 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         from .options_flow import SonnenOptionsFlow
-
         return SonnenOptionsFlow(config_entry)
