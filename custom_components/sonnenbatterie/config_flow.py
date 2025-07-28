@@ -1,3 +1,5 @@
+# File: custom_components/sonnenbatterie/config_flow.py
+
 from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol
