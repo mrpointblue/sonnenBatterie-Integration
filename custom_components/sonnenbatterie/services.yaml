@@ -76,18 +76,3 @@ get_system_status:
       default: false
       selector:
         boolean: {}
-
-restart_battery:
-  name: Restart Battery System
-  description: >
-    Führt einen Neustart der Batterie über die REST API aus.
-    Nur für Servicezwecke verwenden!
-  fields:
-    confirm:
-      name: Bestätigung
-      description: >
-        Muss auf true gesetzt werden, um den Neustart zuzulassen.
-      required: true
-      default: false
-      selector:
-        boolean: {}
