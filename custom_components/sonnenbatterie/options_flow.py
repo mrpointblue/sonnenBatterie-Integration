@@ -31,7 +31,7 @@ class SonnenOptionsFlow(config_entries.OptionsFlow):
                 vol.Required("ip_address", default=self.data["ip_address"]): cv.string,
                 vol.Required("token", default=self.data["token"]): cv.string,
                 vol.Required(
-                    "scan_interval", default=self.data.get("scan_interval", 5)
+                    "scan_interval", default=self.data.get("scan_interval", 1)
                 ): vol.All(vol.Coerce(int), vol.Range(min=1)),
                 vol.Optional(
                     "custom_prefix", default=self.data.get("custom_prefix", DEFAULT_PREFIX)
