@@ -55,6 +55,8 @@ SENSORS = [
 
     # Sensors from /api/v2/battery
     {"name": "Battery Voltage", "key": "systemdcvoltage", "unit": "V", "device_class": "voltage"},
+    {"name": "Maximum Module Voltage", "key": "maximummoduledcvoltage", "unit": "V", "device_class": "voltage"},
+    {"name": "Minimum Module Voltage", "key": "minimummoduledcvoltage", "unit": "V", "device_class": "voltage"},
     {"name": "System Current", "key": "systemcurrent", "unit": "A", "device_class": "current"},
     {"name": "Charge Current Limit", "key": "chargecurrentlimit", "unit": "A", "device_class": None},
     {"name": "Discharge Current Limit", "key": "dischargecurrentlimit", "unit": "A", "device_class": None},
