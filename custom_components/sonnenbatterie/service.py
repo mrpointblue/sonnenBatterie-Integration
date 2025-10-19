@@ -46,17 +46,6 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         else:
             _LOGGER.error("Fehler beim Abrufen des Status")
 
-    async def handle_restart_battery(call: ServiceCall):
-        confirm = call.data.get("confirm", False)
-        if not confirm:
-            _LOGGER.warning("Neustart wurde nicht bestätigt – Vorgang abgebrochen.")
-            return
-        success = await restart_battery(ip, token)
-        if success:
-            _LOGGER.info("Batterie-System wurde neugestartet.")
-        else:
-            _LOGGER.error("Neustart fehlgeschlagen.")
-
     hass.services.async_register(
         DOMAIN,
         "set_battery_power",
