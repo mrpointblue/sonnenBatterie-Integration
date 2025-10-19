@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .const import DOMAIN
+from .const import DOMAIN, PLATFORMS
 from .service import async_register_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -14,6 +14,15 @@ _LOGGER.info("Die sonnenbatterie-Integration wird geladen...")
 CARD_FILE_NAME = "sonnenbatteriecard.js"
 CARD_SOURCE_FOLDER = "custom_components/sonnenbatterie/card_resources"
 CARD_TARGET_FOLDER = "www"
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Initialize the Sonnenbatterie integration."""
+    hass.data.setdefault(DOMAIN, {})
+    _LOGGER.debug("Sonnenbatterie async_setup initialized.")
+    return True
+
+if 'PLATFORMS' not in locals():
+    PLATFORMS = ["sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the sonnenbatterie integration for sensor readings and services."""
