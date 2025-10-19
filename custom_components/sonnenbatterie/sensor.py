@@ -1,3 +1,5 @@
+# File: custom_components/sonnenbatterie/sensor.py
+
 from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -9,8 +11,8 @@ import logging
 from .const import DOMAIN, SENSORS, DEFAULT_PREFIX
 
 _LOGGER = logging.getLogger(__name__)
-DEFAULT_SCAN_INTERVAL = 30
-MIN_SCAN_INTERVAL = 5
+DEFAULT_SCAN_INTERVAL = 5
+MIN_SCAN_INTERVAL = 1
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities):
@@ -154,7 +156,7 @@ class SonnenBatterieSensor(CoordinatorEntity, Entity):
 
     def determine_endpoint(self):
         if self._key in [
-            "fac", "iac_total", "ibat", "ipv", "pac_microgrid", "pac_total", "pbat", "phi", "ppv", "sac_total", "tmax", "uac", "upv"
+            "fac", "iac_total", "ibat", "ipv", "pac_microgrid", "pac_total", "pbat", "phi", "ppv", "sac_total", "tmax", "uac", "upv",
         ]:
             return "/api/v2/inverter"
         if self._key in [
@@ -186,4 +188,3 @@ class SonnenBatterieSensor(CoordinatorEntity, Entity):
         ]:
             return "/api/v2/powermeter"
         return "/api/v2/latestdata"
-
