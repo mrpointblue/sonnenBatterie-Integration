@@ -1,0 +1,93 @@
+set_em_operating_mode:
+  name: Set EM Operating Mode
+  description: >
+    Setzt den Betriebsmodus der sonnenBatterie.
+    Unterstützte Modi:
+      - 1 = Manuell
+      - 2 = Eigenverbrauchsoptimierung
+      - 6 = Erweiterungsmodus
+      - 10 = Time Of Use
+  fields:
+    mode:
+      name: Modus
+      description: >
+        Der gewünschte Betriebsmodus (1, 2, 6 oder 10)
+      required: true
+      example: 2
+      selector:
+        select:
+          options:
+            - label: Manuell
+              value: 1
+            - label: Eigenverbrauchsoptimierung
+              value: 2
+            - label: Erweiterungsmodus
+              value: 6
+            - label: Time Of Use
+              value: 10
+
+set_battery_power:
+  name: Set Battery Power
+  description: >
+    Setzt die Lade- oder Entladeleistung der sonnenBatterie in Watt.
+    Dies funktioniert nur im manuellen Betriebsmodus.
+  fields:
+    direction:
+      name: Richtung
+      description: >
+        Richtung des Energieflusses:
+          - charge = Laden
+          - discharge = Entladen
+      required: true
+      example: discharge
+      selector:
+        select:
+          options:
+            - label: Laden
+              value: charge
+            - label: Entladen
+              value: discharge
+
+    watts:
+      name: Leistung
+      description: >
+        Leistung in Watt, die geladen oder entladen werden soll.
+        Maximalleistung richtet sich nach dem installierten Inverter.
+      required: true
+      example: 1500
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 100
+          unit_of_measurement: W
+
+get_system_status:
+  name: Get System Status
+  description: >
+    Liest den aktuellen Systemstatus der sonnenBatterie über die REST API aus.
+    Gibt JSON mit SoC, Ladezustand, PV-Produktion und Verbrauch zurück.
+  fields:
+    include_raw:
+      name: Rohdaten einbeziehen
+      description: >
+        Wenn auf true gesetzt, enthält die Antwort auch die unverarbeiteten API-Daten.
+      required: false
+      default: false
+      selector:
+        boolean: {}
+
+restart_battery:
+  name: Restart Battery System
+  description: >
+    Führt einen Neustart der Batterie über die REST API aus.
+    Nur für Servicezwecke verwenden!
+  fields:
+    confirm:
+      name: Bestätigung
+      description: >
+        Muss auf true gesetzt werden, um den Neustart zuzulassen.
+      required: true
+      default: false
+      selector:
+        boolean: {}
