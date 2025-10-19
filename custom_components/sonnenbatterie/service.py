@@ -44,7 +44,7 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         if status:
             _LOGGER.info(f"Aktueller Status: {status}")
         else:
-            _LOGGER.error("Fehler beim Abrufen des Status")
+            _LOGGER.error("Fehler beim Abrufen des Status")      
 
     hass.services.async_register(
         DOMAIN,
@@ -81,6 +81,27 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         schema=vol.Schema({
             vol.Required("confirm"): cv.boolean,
         }),
+    )
+
+    async def handle_publish_all_sensors(call: ServiceCall):
+        """Veröffentlicht alle SonnenBatterie-Sensoren in Home Assistant."""
+        try:
+            count = 0
+            for state in hass.states.async_all():
+                if state.entity_id.startswith("sensor.sonnenbatterie_"):
+                    hass.bus.async_fire(
+                        "sonnenbatterie_sensor_published",
+                        {"entity_id": state.entity_id, "state": state.state},
+                    )
+                    count += 1
+            _LOGGER.info(f"{count} SonnenBatterie-Sensoren veröffentlicht.")
+        except Exception as e:
+            _LOGGER.error(f"Fehler beim Veröffentlichen der Sensoren: {e}")
+
+    hass.services.async_register(
+        DOMAIN,
+        "publish_all_sensors",
+        handle_publish_all_sensors,
     )
 
     _LOGGER.info("Alle Services für Sonnen-Batterie erfolgreich registriert.")
