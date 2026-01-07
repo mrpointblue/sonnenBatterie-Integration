@@ -5,6 +5,39 @@ from homeassistant.helpers import config_validation as cv
 from .const import DOMAIN, DEFAULT_PREFIX
 
 
+class SonnenOptionsFlow(config_entries.OptionsFlow):
+    """Handle options flow for SonnenBatterie integration."""
+
+    def __init__(self, config_entry):
+        """Initialize the options flow."""
+        self.entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Manage the options."""
+        if user_input is not None:
+            self.hass.config_entries.async_update_entry(
+                self.entry,
+                data={
+                    "ip_address": user_input["ip_address"],
+                    "token": user_input["token"],
+                    "scan_interval": user_input["scan_interval"],
+                    "custom_prefix": user_input.get("custom_prefix", DEFAULT_PREFIX),
+                },
+            )
+            return self.async_create_entry(title="", data={})
+
+        schema = vol.Schema(
+            {
+                vol.Required("ip_address", default=self.entry.data["ip_address"]): cv.string,
+                vol.Required("token", default=self.entry.data["token"]): cv.string,
+                vol.Required("scan_interval", default=self.entry.data.get("scan_interval", 1)): vol.All(vol.Coerce(int), vol.Range(min=1)),
+                vol.Optional("custom_prefix", default=self.entry.data.get("custom_prefix", DEFAULT_PREFIX)): cv.string,
+            }
+        )
+
+        return self.async_show_form(step_id="init", data_schema=schema)
+
+
 class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for SonnenBatterie integration."""
 
@@ -41,36 +74,3 @@ class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry):
         """Return the options flow handler."""
         return SonnenOptionsFlow(config_entry)
-
-
-class SonnenOptionsFlow(config_entries.OptionsFlow):
-    """Handle options flow for SonnenBatterie integration."""
-
-    def __init__(self, config_entry):
-        """Initialize the options flow."""
-        self.entry = config_entry
-
-    async def async_step_init(self, user_input=None):
-        """Manage the options."""
-        if user_input is not None:
-            self.hass.config_entries.async_update_entry(
-                self.entry,
-                data={
-                    "ip_address": user_input["ip_address"],
-                    "token": user_input["token"],
-                    "scan_interval": user_input["scan_interval"],
-                    "custom_prefix": user_input.get("custom_prefix", DEFAULT_PREFIX),
-                },
-            )
-            return self.async_create_entry(title="", data={})
-
-        schema = vol.Schema(
-            {
-                vol.Required("ip_address", default=self.entry.data["ip_address"]): cv.string,
-                vol.Required("token", default=self.entry.data["token"]): cv.string,
-                vol.Required("scan_interval", default=self.entry.data.get("scan_interval", 1)): vol.All(vol.Coerce(int), vol.Range(min=1)),
-                vol.Optional("custom_prefix", default=self.entry.data.get("custom_prefix", DEFAULT_PREFIX)): cv.string,
-            }
-        )
-
-        return self.async_show_form(step_id="init", data_schema=schema)
