@@ -6,8 +6,7 @@ import voluptuous as vol
 from .battery_control import (
     set_em_operating_mode,
     set_battery_power,
-    get_system_status,
-    restart_battery,
+    get_system_status
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,15 +70,6 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         handle_get_system_status,
         schema=vol.Schema({
             vol.Optional("include_raw", default=False): cv.boolean,
-        }),
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        "restart_battery",
-        handle_restart_battery,
-        schema=vol.Schema({
-            vol.Required("confirm"): cv.boolean,
         }),
     )
 

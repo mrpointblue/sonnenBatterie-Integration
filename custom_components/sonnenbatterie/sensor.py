@@ -83,7 +83,7 @@ class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
                             data = await response.json()
                             results[endpoint] = data
                         else:
-                            _LOGGER.warning(f"Failed to fetch data from {endpoint}: {response.status}")
+                            _LOGGER.warning("Failed to fetch from %s [%s]: %s", endpoint, response.status, await response.text())
                 except Exception as e:
                     _LOGGER.error(f"Error fetching data from {endpoint}: {e}")
 

@@ -45,14 +45,14 @@ SENSORS = [
     {"name": "PV Power", "key": "ppv", "unit": "W", "device_class": "power", "state_class": "measurement"},
     {"name": "Inverter Temperature", "key": "tmax", "unit": "°C", "device_class": "temperature", "state_class": "measurement"},
     {"name": "PV Voltage", "key": "upv", "unit": "V", "device_class": "measurement", "state_class": "measurement"},
-    {"name": "PV Current", "key": "ipv", "unit": "A", "device_class": "measurement", "state_class": "measurement"},
+    {"name": "PV Current", "key": "ipv", "unit": "A", "device_class": "voltage", "state_class": "measurement"},
 
     # Sensors from /api/v2/configurations
     {"name": "Operating Mode", "key": "EM_OperatingMode", "unit": None, "device_class": None},
     {"name": "Max Inverter Power", "key": "IC_InverterMaxPower_w", "unit": "W", "device_class": "power"},
     {"name": "Power Factor Cos Phi", "key": "NVM_PfcFixedCosPhi", "unit": None, "device_class": None},
     {"name": "Software Version", "key": "DE_Software", "unit": None, "device_class": None},
-    {"name": "Installed Batterys", "key": "IC_BatteryModules", "unit": None, "device_class": None},
+    {"name": "Installed Batteries", "key": "IC_BatteryModules", "unit": None, "device_class": None},
 
     # Sensors from /api/v2/battery
     {"name": "Battery Voltage", "key": "systemdcvoltage", "unit": "V", "device_class": "voltage"},

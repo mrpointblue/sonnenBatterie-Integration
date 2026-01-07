@@ -2,7 +2,7 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
-from .const import DEFAULT_PREFIX
+from .const import DEFAULT_PREFIX, DEFAULT_SCAN_INTERVAL, MIN_SCAN_INTERVAL
 
 class SonnenOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for the SonnenBatterie integration."""
