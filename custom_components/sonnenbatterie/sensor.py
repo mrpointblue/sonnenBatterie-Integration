@@ -90,7 +90,7 @@ class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
         return results
 
 
-class SonnenBatterieSensor(CoordinatorEntity, Entity):
+class SonnenBatterieSensor(CoordinatorEntity):
     def __init__(self, coordinator, sensor, custom_prefix):
         super().__init__(coordinator)
         self._name = f"{custom_prefix}_{sensor['name']}"
@@ -99,6 +99,14 @@ class SonnenBatterieSensor(CoordinatorEntity, Entity):
         self._device_class = sensor["device_class"]
         self._state_class = sensor.get("state_class")
         self._sensor_direction = sensor.get("direction")
+
+        self._attr_has_entity_name = True
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.ip)},
+            "name": f"SonnenBatterie {coordinator.ip}",
+            "manufacturer": "Sonnen",
+            "model": "SonnenBatterie",
+        }
 
     @property
     def name(self):
