@@ -131,7 +131,8 @@ async def add_lovelace_resource(hass: HomeAssistant, resource_url: str) -> None:
     """
     try:
         # Zugriff auf die Lovelace-Ressourcen
-        resources = hass.data.get("lovelace", {}).get("resources", None)
+        lovelace = hass.data.get("lovelace")
+        resources = getattr(lovelace, "resources", None) if lovelace else None
 
         if resources is not None:
             # Prüfen, ob die Ressource bereits existiert
