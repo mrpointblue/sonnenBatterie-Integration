@@ -18,13 +18,16 @@ set_em_operating_mode:
         select:
           options:
             - label: Manuell
-              value: 1
+              value: "1"
             - label: Eigenverbrauchsoptimierung
-              value: 2
+              value: "2"
             - label: Erweiterungsmodus
-              value: 6
+              value: "6"
             - label: Time Of Use
-              value: 10
+              value: "10"
+  target:
+    entity:
+      integration: sonnenbatterie
 
 set_battery_power:
   name: Set Battery Power
@@ -61,3 +64,6 @@ set_battery_power:
           max: 10000
           step: 100
           unit_of_measurement: W
+  target:
+    entity:
+      integration: sonnenbatterie
