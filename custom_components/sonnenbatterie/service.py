@@ -5,8 +5,7 @@ import voluptuous as vol
 
 from .battery_control import (
     set_em_operating_mode,
-    set_battery_power,
-    get_system_status
+    set_battery_power
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,14 +35,6 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         else:
             _LOGGER.error(f"Fehler beim Setzen des Modus: {mode}")
 
-    async def handle_get_system_status(call: ServiceCall):
-        include_raw = call.data.get("include_raw", False)
-        _LOGGER.debug("Systemstatus wird abgerufen...")
-        status = await get_system_status(ip, token, include_raw=include_raw)
-        if status:
-            _LOGGER.info(f"Aktueller Status: {status}")
-        else:
-            _LOGGER.error("Fehler beim Abrufen des Status")      
 
     hass.services.async_register(
         DOMAIN,
@@ -64,14 +55,6 @@ async def async_register_services(hass: HomeAssistant, config: dict, ip: str, to
         }),
     )
 
-    hass.services.async_register(
-        DOMAIN,
-        "get_system_status",
-        handle_get_system_status,
-        schema=vol.Schema({
-            vol.Optional("include_raw", default=False): cv.boolean,
-        }),
-    )
 
     async def handle_publish_all_sensors(call: ServiceCall):
         """Veröffentlicht alle SonnenBatterie-Sensoren in Home Assistant."""
