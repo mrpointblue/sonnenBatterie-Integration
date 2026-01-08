@@ -61,18 +61,3 @@ set_battery_power:
           max: 10000
           step: 100
           unit_of_measurement: W
-
-get_system_status:
-  name: Get System Status
-  description: >
-    Liest den aktuellen Systemstatus der sonnenBatterie über die REST API aus.
-    Gibt JSON mit SoC, Ladezustand, PV-Produktion und Verbrauch zurück.
-  fields:
-    include_raw:
-      name: Rohdaten einbeziehen
-      description: >
-        Wenn auf true gesetzt, enthält die Antwort auch die unverarbeiteten API-Daten.
-      required: false
-      default: false
-      selector:
-        boolean: {}
