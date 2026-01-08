@@ -5,26 +5,20 @@ _LOGGER = logging.getLogger(__name__)
 
 API_BASE_URL = "http://{ip}/api/v2"
 
-async def set_em_operating_mode(ip: str, token: str, mode: int) -> bool:
-    """
-    Setzt den EM_OperatingMode auf den angegebenen Wert.
-
-    :param ip: IP-Adresse des Geräts.
-    :param token: Authentifizierungstoken.
-    :param mode: Modus (z. B. 1 für manuell, 2 für Eigenverbrauchsoptimierung).
-    :return: True, wenn erfolgreich, sonst False.
-    """
-    url = f"{API_BASE_URL.format(ip=ip)}/configurations"
-    headers = {
+def _build_headers(token: str) -> dict:
+    return {
         "Auth-Token": token,
         "Content-Type": "application/x-www-form-urlencoded"
     }
-    # URL-encoded payload
+
+async def set_em_operating_mode(ip: str, token: str, mode: int) -> bool:
+    url = f"{API_BASE_URL.format(ip=ip)}/configurations"
+    headers = _build_headers(token)
     payload = {"EM_OperatingMode": str(mode)}
 
     _LOGGER.debug(f"Sende PUT-Anfrage an {url} mit payload: {payload}")
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
         try:
             async with session.put(url, data=payload, headers=headers) as response:
                 if response.status == 200:
@@ -40,18 +34,7 @@ async def set_em_operating_mode(ip: str, token: str, mode: int) -> bool:
             _LOGGER.error(f"Exception beim Setzen des EM_OperatingMode: {e}")
             return False
 
-
 async def set_battery_power(ip: str, token: str, direction: str, watts: int) -> bool:
-    """
-    Setzt die Lade- oder Entladeleistung der Batterie.
-
-    :param ip: IP-Adresse des Geräts.
-    :param token: Authentifizierungstoken.
-    :param direction: Richtung der Leistung ("charge" oder "discharge").
-    :param watts: Leistung in Watt (≥ 0).
-    :return: True, wenn erfolgreich, sonst False.
-    """
-    # Eingabevalidierung
     if direction not in ["charge", "discharge"]:
         _LOGGER.error("Ungültige Richtung. Verwenden Sie 'charge' oder 'discharge'.")
         return False
@@ -61,14 +44,11 @@ async def set_battery_power(ip: str, token: str, direction: str, watts: int) -> 
         return False
 
     url = f"{API_BASE_URL.format(ip=ip)}/setpoint/{direction}/{watts}"
-    headers = {
-        "Auth-Token": token,
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
+    headers = _build_headers(token)
 
     _LOGGER.debug(f"Sende POST-Anfrage an {url} mit direction={direction} und watts={watts}")
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
         try:
             async with session.post(url, headers=headers) as response:
                 if response.status == 200:

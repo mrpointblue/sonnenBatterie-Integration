@@ -11,29 +11,5 @@ jobs:
     name: Run hassfest
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Upgrade pip
-        run: pip install --upgrade pip setuptools wheel
-
-      - name: Clone Home Assistant Core repository
-        run: git clone --depth 1 https://github.com/home-assistant/core.git /tmp/home-assistant-core
-
-      - name: Remove incompatible dependencies
-        run: |
-          sed -i '/accuweather==4.0.0/d' /tmp/home-assistant-core/requirements_test_all.txt
-          sed -i '/aioacaia==0.1.14/d' /tmp/home-assistant-core/requirements_test_all.txt
-
-      - name: Install dependencies (ignore errors)
-        run: |
-          pip install -r /tmp/home-assistant-core/requirements_test_all.txt || true
-
-      - name: Run hassfest
-        working-directory: /tmp/home-assistant-core
-        run: python3 -m script.hassfest || true
+      - uses: actions/checkout@v3
+      - uses: home-assistant/actions/hassfest@master
