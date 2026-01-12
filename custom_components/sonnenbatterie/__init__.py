@@ -4,12 +4,12 @@ import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryNotReady
-
 from homeassistant.helpers import config_validation as cv
 
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 from .const import DOMAIN, PLATFORMS
 from .service import async_register_services
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.info("Die sonnenbatterie-Integration wird geladen...")
