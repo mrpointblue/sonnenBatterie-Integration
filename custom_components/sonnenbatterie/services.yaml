@@ -8,6 +8,13 @@ set_em_operating_mode:
       - 6 = Erweiterungsmodus
       - 10 = Time Of Use
   fields:
+    entity_id:
+      name: Batterie
+      description: Eine Entität der gewünschten Batterie. Bei mehreren Batterien erforderlich.
+      selector:
+        entity:
+          filter:
+            integration: sonnenbatterie
     mode:
       name: Modus
       description: >
@@ -25,9 +32,7 @@ set_em_operating_mode:
               value: "6"
             - label: Time Of Use
               value: "10"
-  target:
-    entity:
-      integration: sonnenbatterie
+
 
 set_battery_power:
   name: Set Battery Power
@@ -35,6 +40,13 @@ set_battery_power:
     Setzt die Lade- oder Entladeleistung der sonnenBatterie in Watt.
     Dies funktioniert nur im manuellen Betriebsmodus.
   fields:
+    entity_id:
+      name: Batterie
+      description: Eine Entität der gewünschten Batterie. Bei mehreren Batterien erforderlich.
+      selector:
+        entity:
+          filter:
+            integration: sonnenbatterie
     direction:
       name: Richtung
       description: >
@@ -64,6 +76,8 @@ set_battery_power:
           max: 10000
           step: 100
           unit_of_measurement: W
-  target:
-    entity:
-      integration: sonnenbatterie
+
+
+publish_all_sensors:
+  name: Publish all sensors
+  description: Emit current states of loaded sonnenBatterie entities as events.

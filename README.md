@@ -16,6 +16,18 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   https://github.com/flixlix/power-flow-card-plus
 
+## Version 1.1.0-rc.1 compatibility update
+
+Version `1.1.0` is the planned minor release after stable `1.0.10`.
+It includes compatibility fixes and new control/configuration capabilities.
+`1.1.0-rc.1` is a pre-release for testing; `1.0.10` remains the stable release.
+Options now reload the integration. Legacy entity/device identifiers are frozen
+on the first updated setup, so later IP/prefix changes preserve registry identity.
+Already orphaned entities from older prefix/IP changes are not merged automatically.
+Unavailable API endpoints mark their sensors unavailable; total connection failure
+causes setup retry. Timestamp values without a timezone are reported as unknown.
+The target is HA 2026.9; a real HA/device smoke test is still required.
+
 ## Compatibility
 This integration works with SonnenBatterie systems starting from the Eco8 generation and newer.
 Actual known Hardware Systems (More possible):
@@ -40,10 +52,9 @@ Actual known Hardware Systems (More possible):
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=mrpointblue&repository=sonnenBatterie-Integration&category=integration)
 
-1. Clone this repository into your Home Assistant `custom_components` directory:
-   ```bash
-   git clone https://github.com/mrpointblue/sonnenBatterie custom_components/sonnen_battery
-   ```
+1. Install through HACS, or download this repository and copy its
+   `custom_components/sonnenbatterie` folder into
+   `<HA configuration>/custom_components/sonnenbatterie`.
 2. Restart Home Assistant.
 
 ## Configuration in Home Assistant
@@ -58,15 +69,32 @@ Integration comes with a custom card to set Operating Mode, charge or discharge 
 <img width="447" alt="Bildschirmfoto 2025-01-28 um 23 25 55" src="https://github.com/user-attachments/assets/b4b2be9c-0ad9-4911-a16b-6726fb3b68c8" />
 
 
-Add the card manually to your dashboard.
+The integration copies the optional card to `www/sonnenbatteriecard.js`.
+Add `/local/sonnenbatteriecard.js?v=1.1.0-rc.1` as a JavaScript module under
+Settings → Dashboards → Resources (advanced mode). Update the existing resource
+URL if the card was already installed; do not register it twice. If `www` was
+created for the first time, restart HA to enable `/local` serving.
+Then add the card manually to your dashboard. Each card can target a battery
+using `entity`, an existing entity belonging to that battery. This is required
+when multiple batteries are loaded. `max_power_entity` optionally selects the
+sensor used to display the inverter limit.
 
 ```yaml
 type: custom:sonnenbatterie-card
+entity: sensor.sonnen_ac_power
+max_power_entity: sensor.sonnen_max_inverter_power
 
 ```
-service example via YAML:
+Service example (use an actual entity ID from your installation):
+```yaml
 action: sonnenbatterie.set_em_operating_mode
-mode: 1
+data:
+  entity_id: sensor.sonnen_ac_power
+  mode: 1
+```
+Omitting `entity_id` is supported only when exactly one battery is loaded.
+Commands that fail now report an error to Home Assistant and the card. Power
+setpoints allow 0 W; the battery firmware must permit the requested command.
 
 Modes:
 - "1": "Manual",
@@ -123,14 +151,7 @@ The following sensors can be read from various API endpoints. Each sensor includ
 - AC Current (`iac_total`): A (device_class: `current`)
 - PV Power (`ppv`): W (device_class: `power`)
 - Inverter Temperature (`tmax`): °C (device_class: `temperature`)
-- Battery Current (`ibat`): A (device_class: `current`)
 - PV Current (`ipv`): A (device_class: `current`)
-- Microgrid Power (`pac_microgrid`): W (device_class: `power`)
-- Total Power (`pac_total`): W (device_class: `power`)
-- Battery Power (`pbat`): W (device_class: `power`)
-- Apparent Power Total (`sac_total`)
-- AC Voltage (`uac`): V (device_class: `voltage`)
-- Battery Voltage (`ubat`): V (device_class: `voltage`)
 - PV Voltage (`upv`): V (device_class: `voltage`)
 
 ---
@@ -149,8 +170,8 @@ The following sensors can be read from various API endpoints. Each sensor includ
 - System Current (`systemcurrent`): A (device_class: `current`)
 - Charge Current Limit (`chargecurrentlimit`): A
 - Discharge Current Limit (`dischargecurrentlimit`): A
-- Full Charge Capacity (`fullchargecapacity`): Ah (device_class: `energy`)
-- Remaining Capacity (`remainingcapacity`): Ah (device_class: `energy`)
+- Full Charge Capacity (`fullchargecapacity`): Ah
+- Remaining Capacity (`remainingcapacity`): Ah
 - Maximum Cell Temperature (`maximumcelltemperature`): °C (device_class: `temperature`)
 - Minimum Cell Temperature (`minimumcelltemperature`): °C (device_class: `temperature`)
 - Charge Cycle Count (`cyclecount`)
@@ -170,8 +191,8 @@ The following sensors can be read from various API endpoints. Each sensor includ
 - Production Voltage L1-N (`v_l1_n`): V (device_class: `voltage`, direction: `production`)
 - Production Voltage L2-N (`v_l2_n`): V (device_class: `voltage`, direction: `production`)
 - Production Voltage L3-N (`v_l3_n`): V (device_class: `voltage`, direction: `production`)
-- Production Energy Exported (`kwh_exported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `production`)
-- Production Energy Imported (`kwh_imported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `production`)
+- Production Energy Exported (`kwh_exported`): kWh (device_class: `energy`, state_class: `total`, direction: `production`)
+- Production Energy Imported (`kwh_imported`): kWh (device_class: `energy`, state_class: `total`, direction: `production`)
 
 #### **Consumption Values**
 - Consumption Power L1 (`w_l1`): W (device_class: `power`, direction: `consumption`)
@@ -184,64 +205,56 @@ The following sensors can be read from various API endpoints. Each sensor includ
 - Consumption Voltage L1-N (`v_l1_n`): V (device_class: `voltage`, direction: `consumption`)
 - Consumption Voltage L2-N (`v_l2_n`): V (device_class: `voltage`, direction: `consumption`)
 - Consumption Voltage L3-N (`v_l3_n`): V (device_class: `voltage`, direction: `consumption`)
-- Consumption Energy Exported (`kwh_exported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `consumption`)
-- Consumption Energy Imported (`kwh_imported`): kWh (device_class: `energy`, state_class: `total_increasing`, direction: `consumption`)
+- Consumption Energy Exported (`kwh_exported`): kWh (device_class: `energy`, state_class: `total`, direction: `consumption`)
+- Consumption Energy Imported (`kwh_imported`): kWh (device_class: `energy`, state_class: `total`, direction: `consumption`)
 
 ## Example YAML Configuration (Manual)
 If you want a sensor for charge and discharge energy for using in energy dashboard, add the following to your `configuration.yaml` file:
 
-```yaml (Ensure to change the prefix if using own customized prefix)
+```yaml
+template:
+  - sensor:
+      - name: Sonnen Charge Power
+        unique_id: sonnen_charge_power
+        default_entity_id: sensor.sonnen_charge_power
+        unit_of_measurement: W
+        device_class: power
+        state_class: measurement
+        availability: "{{ is_number(states('sensor.sonnen_ac_power')) }}"
+        state: "{{ [0, -(states('sensor.sonnen_ac_power') | float(0))] | max }}"
+      - name: Sonnen Discharge Power
+        unique_id: sonnen_discharge_power
+        default_entity_id: sensor.sonnen_discharge_power
+        unit_of_measurement: W
+        device_class: power
+        state_class: measurement
+        availability: "{{ is_number(states('sensor.sonnen_ac_power')) }}"
+        state: "{{ [0, states('sensor.sonnen_ac_power') | float(0)] | max }}"
+
 sensor:
-  - platform: template
-    sensors:
-      sonnen_charge_power:
-        friendly_name: "Sonnen Charge Power"
-        unique_id: "sonnen_charge_power"
-        unit_of_measurement: "W"
-        device_class: power
-        state_class: measurement
-        value_template: >
-          {% if states('sensor.sonnen_ac_power') | float < 0 %}
-            {{ (states('sensor.sonnen_ac_power') | float) | abs }}
-          {% else %}
-            0
-          {% endif %}
-
-      sonnen_discharge_power:
-        friendly_name: "Sonnen Discharge Power"
-        unique_id: "sonnen_discharge_power"
-        unit_of_measurement: "W"
-        device_class: power
-        state_class: measurement
-        value_template: >
-          {% if states('sensor.sonnen_ac_power') | float > 0 %}
-            {{ (states('sensor.sonnen_ac_power') | float) }}
-          {% else %}
-            0
-          {% endif %}
-
   - platform: integration
     source: sensor.sonnen_charge_power
-    name: "Sonnen Charge Energy"
+    name: Sonnen Charge Energy
     unit_prefix: k
     round: 2
     method: trapezoidal
-
   - platform: integration
     source: sensor.sonnen_discharge_power
-    name: "Sonnen Discharge Energy"
+    name: Sonnen Discharge Energy
     unit_prefix: k
     round: 2
     method: trapezoidal
-
 ```
+
+Use your actual source entity IDs. Replace legacy template definitions instead
+of retaining both versions. Merge these sections with existing YAML sections.
 
 ## Known Issues
 - No Data >> Ensure the `JSON API for Reading` is enabled in the SonnenBatterie dashboard.
 - No Data >> If no data appears, verify the IP address and token entered in the integration.
 - Charging / Discharging not possible Ensure the `JSON API for Write` is enabled in the SonnenBatterie dashboard.
 - Mode 11 and 4 not supported by API
-- The current card can only control one battery. Multiple batteries are not supported and may cause control issues.
+- With multiple batteries, configure an explicit `entity` in each control card.
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.

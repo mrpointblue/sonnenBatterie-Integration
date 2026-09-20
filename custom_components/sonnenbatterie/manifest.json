@@ -1,14 +1,18 @@
 {
   "domain": "sonnenbatterie",
   "name": "SonnenBatterie",
-  "version": "1.0.10",
+  "codeowners": [
+    "@mrpointblue"
+  ],
   "config_flow": true,
-  "integration_type": "hub",
-  "iot_class": "local_polling",
-  "codeowners": ["@mrpointblue"],
   "dependencies": [],
   "documentation": "https://github.com/mrpointblue/sonnenBatterie-Integration",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/mrpointblue/sonnenBatterie-Integration/issues",
-  "loggers": ["custom_components.sonnenbatterie"],
-  "requirements": []
+  "loggers": [
+    "custom_components.sonnenbatterie"
+  ],
+  "requirements": [],
+  "version": "1.1.0-rc.1"
 }

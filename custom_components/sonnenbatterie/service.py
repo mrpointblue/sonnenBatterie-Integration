@@ -1,80 +1,68 @@
-import logging
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import config_validation as cv
+"""Register services once and resolve the battery for every call."""
 import voluptuous as vol
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import config_validation as cv, entity_registry as er
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from .const import DOMAIN
+from .battery_control import set_battery_power, set_em_operating_mode
 
-from .battery_control import (
-    set_em_operating_mode,
-    set_battery_power
-)
+SERVICES = ("set_battery_power", "set_em_operating_mode", "publish_all_sensors")
 
-_LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "sonnenbatterie"
+def resolve_entry(hass, entity_ids):
+    entries = hass.data.get(DOMAIN, {})
+    if not entity_ids:
+        if len(entries) != 1:
+            raise HomeAssistantError("Select an entity of exactly one loaded sonnenBatterie")
+        return next(iter(entries.values()))
+    registry = er.async_get(hass)
+    selected = set()
+    for entity_id in entity_ids:
+        entity = registry.async_get(entity_id)
+        if entity is None or entity.platform != DOMAIN or entity.config_entry_id not in entries:
+            raise HomeAssistantError("Target is not a loaded sonnenBatterie entity")
+        selected.add(entity.config_entry_id)
+    if len(selected) != 1:
+        raise HomeAssistantError("Select entities belonging to exactly one battery")
+    return entries[selected.pop()]
 
-async def async_register_services(hass: HomeAssistant, config: dict, ip: str, token: str):
-    """Registriert die sonnenbatterie-Services in Home Assistant."""
 
-    async def handle_set_battery_power(call: ServiceCall):
-        direction = call.data.get("direction")
-        watts = call.data.get("watts", 1000)
-        if direction not in ["charge", "discharge"] or watts < 0:
-            _LOGGER.error(f"Ungültige Parameter: {direction}, {watts}")
-            return
-        success = await set_battery_power(ip, token, direction, watts)
-        if success:
-            _LOGGER.info(f"Batterieleistung gesetzt: {direction} {watts}W")
+async def async_register_services(hass):
+    if hass.services.has_service(DOMAIN, "set_battery_power"):
+        return
+
+    async def handle_control(call):
+        entry = resolve_entry(hass, call.data.get("entity_id"))
+        config = {**entry.data, **entry.options}
+        session = async_get_clientsession(hass)
+        args = (session, config["ip_address"], config["token"])
+        if call.service == "set_battery_power":
+            await set_battery_power(*args, call.data["direction"], call.data["watts"])
         else:
-            _LOGGER.error("Fehler beim Setzen der Leistung")
+            await set_em_operating_mode(*args, call.data["mode"])
 
-    async def handle_set_em_operating_mode(call: ServiceCall):
-        mode = call.data.get("mode", 2)
-        success = await set_em_operating_mode(ip, token, mode)
-        if success:
-            _LOGGER.info(f"Modus gesetzt: {mode}")
-        else:
-            _LOGGER.error(f"Fehler beim Setzen des Modus: {mode}")
+    target = {vol.Optional("entity_id"): cv.entity_ids}
+    hass.services.async_register(DOMAIN, "set_battery_power", handle_control, schema=vol.Schema({
+        **target,
+        vol.Required("direction"): vol.In(["charge", "discharge"]),
+        vol.Required("watts"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+    }))
+    hass.services.async_register(DOMAIN, "set_em_operating_mode", handle_control, schema=vol.Schema({
+        **target, vol.Required("mode"): vol.All(vol.Coerce(int), vol.In([1, 2, 6, 10])),
+    }))
 
+    async def publish(call):
+        registry = er.async_get(hass)
+        for state in hass.states.async_all():
+            entity = registry.async_get(state.entity_id)
+            if entity and entity.platform == DOMAIN and entity.config_entry_id in hass.data.get(DOMAIN, {}):
+                hass.bus.async_fire("sonnenbatterie_sensor_published", {
+                    "entity_id": state.entity_id, "state": state.state,
+                })
 
-    hass.services.async_register(
-        DOMAIN,
-        "set_battery_power",
-        handle_set_battery_power,
-        schema=vol.Schema({
-            vol.Required("direction"): vol.In(["charge", "discharge"]),
-            vol.Required("watts"): vol.All(vol.Coerce(int), vol.Range(min=0)),
-        }),
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        "set_em_operating_mode",
-        handle_set_em_operating_mode,
-        schema=vol.Schema({
-            vol.Required("mode"): vol.All(vol.Coerce(int), vol.Range(min=1, max=11)),
-        }),
-    )
+    hass.services.async_register(DOMAIN, "publish_all_sensors", publish)
 
 
-    async def handle_publish_all_sensors(call: ServiceCall):
-        """Veröffentlicht alle SonnenBatterie-Sensoren in Home Assistant."""
-        try:
-            count = 0
-            for state in hass.states.async_all():
-                if state.entity_id.startswith("sensor.sonnenbatterie_"):
-                    hass.bus.async_fire(
-                        "sonnenbatterie_sensor_published",
-                        {"entity_id": state.entity_id, "state": state.state},
-                    )
-                    count += 1
-            _LOGGER.info(f"{count} SonnenBatterie-Sensoren veröffentlicht.")
-        except Exception as e:
-            _LOGGER.error(f"Fehler beim Veröffentlichen der Sensoren: {e}")
-
-    hass.services.async_register(
-        DOMAIN,
-        "publish_all_sensors",
-        handle_publish_all_sensors,
-    )
-
-    _LOGGER.info("Alle Services für Sonnen-Batterie erfolgreich registriert.")
+def async_remove_services(hass):
+    for service in SERVICES:
+        hass.services.async_remove(DOMAIN, service)

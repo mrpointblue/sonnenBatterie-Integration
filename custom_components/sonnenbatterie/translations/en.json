@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "sonnenBatterie",
+        "data": {
+          "ip_address": "IP address",
+          "token": "Auth token",
+          "scan_interval": "Polling interval (seconds)",
+          "custom_prefix": "Name prefix"
+        }
+      },
+      "reauth_confirm": {
+        "title": "API-Token",
+        "data": {
+          "token": "Auth-Token"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This battery is already configured.",
+      "reauth_successful": "Authentication updated."
+    },
+    "error": {
+      "invalid_auth": "Invalid token or API permissions.",
+      "cannot_connect": "Could not connect."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "sonnenBatterie options",
+        "data": {
+          "ip_address": "IP address",
+          "token": "Auth token",
+          "scan_interval": "Polling interval (seconds)",
+          "custom_prefix": "Name prefix"
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,13 @@
 class SonnenBatteryCard extends HTMLElement {
     setConfig(config) {
+        if (config.entity && typeof config.entity !== 'string') {
+            throw new Error('entity muss eine Entitäts-ID der Batterie sein.');
+        }
         this.config = config;
     }
 
     set hass(hass) {
+        this._hass = hass;
         if (!this.content) {
             this.innerHTML = `
                 <style>
@@ -119,8 +123,9 @@ class SonnenBatteryCard extends HTMLElement {
             // Event-Handler für Betriebsmodus
             this.querySelector('#set_em_mode').addEventListener('click', () => {
                 const emMode = parseInt(this.querySelector('#em_operating_mode').value, 10);
-                hass.callService('sonnenbatterie', 'set_em_operating_mode', {
+                this._hass.callService('sonnenbatterie', 'set_em_operating_mode', {
                     mode: emMode,
+                    ...this._target(),
                 }).then(() => {
                     alert('Modus erfolgreich angewendet!');
                 }).catch(() => {
@@ -131,9 +136,14 @@ class SonnenBatteryCard extends HTMLElement {
             // Event-Handler für Leistung und Richtung
             this.querySelector('#set_power').addEventListener('click', () => {
                 const direction = this.querySelector('#direction').value;
-                const watts = parseInt(this.querySelector('#watts').value, 10);
-                hass.callService('sonnenbatterie', 'set_battery_power', {
+                const watts = Number(this.querySelector('#watts').value);
+                if (!Number.isInteger(watts) || watts < 0) {
+                    alert('Bitte eine ganze, nicht negative Wattzahl eingeben.');
+                    return;
+                }
+                this._hass.callService('sonnenbatterie', 'set_battery_power', {
                     direction: direction,
+                    ...this._target(),
                     watts: watts,
                 }).then(() => {
                     alert('Leistung erfolgreich angewendet!');
@@ -142,10 +152,15 @@ class SonnenBatteryCard extends HTMLElement {
                 });
             });
         }
+        this._updateMaxPowerLabel(hass, this.querySelector('#max_power_label'));
+    }
+
+    _target() {
+        return this.config.entity ? {entity_id: this.config.entity} : {};
     }
 
     _updateMaxPowerLabel(hass, label) {
-        const maxPowerEntity = 'sensor.sonnen_max_inverter_power';
+        const maxPowerEntity = this.config.max_power_entity;
         const state = hass.states[maxPowerEntity];
 
         if (state && state.state) {

@@ -1,76 +1,64 @@
+"""Configure sonnenBatterie."""
+import asyncio
+import aiohttp
+import voluptuous as vol
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import config_validation as cv
 from homeassistant import config_entries
 from homeassistant.core import callback
-import voluptuous as vol
-from homeassistant.helpers import config_validation as cv
-from .const import DOMAIN, DEFAULT_PREFIX
-
-
-class SonnenOptionsFlow(config_entries.OptionsFlow):
-    """Handle options flow for SonnenBatterie integration."""
-
-    def __init__(self, config_entry):
-        """Initialize the options flow."""
-        self.entry = config_entry
-
-    async def async_step_init(self, user_input=None):
-        """Manage the options."""
-        if user_input is not None:
-            self.hass.config_entries.async_update_entry(
-                self.entry,
-                data={
-                    "ip_address": user_input["ip_address"],
-                    "token": user_input["token"],
-                    "scan_interval": user_input["scan_interval"],
-                    "custom_prefix": user_input.get("custom_prefix", DEFAULT_PREFIX),
-                },
-            )
-            return self.async_create_entry(title="", data={})
-
-        schema = vol.Schema(
-            {
-                vol.Required("ip_address", default=self.entry.data["ip_address"]): cv.string,
-                vol.Required("token", default=self.entry.data["token"]): cv.string,
-                vol.Required("scan_interval", default=self.entry.data.get("scan_interval", 1)): vol.All(vol.Coerce(int), vol.Range(min=1)),
-                vol.Optional("custom_prefix", default=self.entry.data.get("custom_prefix", DEFAULT_PREFIX)): cv.string,
-            }
-        )
-
-        return self.async_show_form(step_id="init", data_schema=schema)
+from .const import DOMAIN
+from .options_flow import SonnenOptionsFlow, config_schema
 
 
 class SonnenBatterieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for SonnenBatterie integration."""
-
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
-        """Handle the initial step."""
-        errors = {}
-
         if user_input is not None:
-            return self.async_create_entry(
-                title="SonnenBatterie",
-                data={
-                    "ip_address": user_input["ip_address"],
-                    "token": user_input["token"],
-                    "scan_interval": user_input["scan_interval"],
-                    "custom_prefix": user_input.get("custom_prefix", DEFAULT_PREFIX),
-                },
-            )
+            # Prevent configuring the same host twice. Authentication is checked
+            # by the first coordinator refresh during setup.
+            host = user_input["ip_address"].strip().lower()
+            for entry in self._async_current_entries():
+                current = {**entry.data, **entry.options}
+                if current["ip_address"].strip().lower() == host:
+                    return self.async_abort(reason="already_configured")
+            return self.async_create_entry(title="SonnenBatterie", data=user_input)
+        return self.async_show_form(step_id="user", data_schema=config_schema())
 
-        schema = vol.Schema(
-            {
-                vol.Required("ip_address"): cv.string,
-                vol.Required("token"): cv.string,
-                vol.Required("scan_interval", default=5): vol.All(vol.Coerce(int), vol.Range(min=1)),
-                vol.Optional("custom_prefix", default=DEFAULT_PREFIX): cv.string,
-            }
+    async def async_step_reauth(self, entry_data):
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input=None):
+        entry = self._get_reauth_entry()
+        errors = {}
+        if user_input is not None:
+            config = {**entry.data, **entry.options, **user_input}
+            try:
+                async with async_get_clientsession(self.hass).get(
+                    f"http://{config['ip_address']}/api/v2/status",
+                    headers={"Auth-Token": config["token"]},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as response:
+                    if response.status in (401, 403):
+                        errors["base"] = "invalid_auth"
+                    else:
+                        response.raise_for_status()
+            except (aiohttp.ClientError, asyncio.TimeoutError):
+                errors["base"] = "cannot_connect"
+            if not errors:
+                self.hass.config_entries.async_update_entry(
+                    entry, options={**entry.options, **user_input})
+                # Loaded entries reload through their update listener; failed
+                # initial setups have no listener and need an explicit reload.
+                if not entry.update_listeners:
+                    self.hass.config_entries.async_schedule_reload(entry.entry_id)
+                return self.async_abort(reason="reauth_successful")
+        return self.async_show_form(
+            step_id="reauth_confirm", errors=errors,
+            data_schema=vol.Schema({vol.Required("token"): cv.string}),
         )
-
-        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        """Return the options flow handler."""
-        return SonnenOptionsFlow(config_entry)
+        return SonnenOptionsFlow()

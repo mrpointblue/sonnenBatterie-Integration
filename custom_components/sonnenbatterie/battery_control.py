@@ -1,65 +1,24 @@
-import logging
+"""Write commands using Home Assistant's shared HTTP session."""
+import asyncio
 import aiohttp
+from homeassistant.exceptions import HomeAssistantError
 
-_LOGGER = logging.getLogger(__name__)
+async def _request(session, method, ip, token, path, data=None):
+    try:
+        async with session.request(
+            method, f"http://{ip}/api/v2/{path}", headers={"Auth-Token": token},
+            data=data, timeout=aiohttp.ClientTimeout(total=10),
+        ) as response:
+            response.raise_for_status()
+    except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        raise HomeAssistantError("sonnenBatterie command failed") from err
 
-API_BASE_URL = "http://{ip}/api/v2"
+async def set_em_operating_mode(session, ip, token, mode):
+    if mode not in (1, 2, 6, 10):
+        raise HomeAssistantError("Unsupported operating mode")
+    await _request(session, "PUT", ip, token, "configurations", {"EM_OperatingMode": str(mode)})
 
-def _build_headers(token: str) -> dict:
-    return {
-        "Auth-Token": token,
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-async def set_em_operating_mode(ip: str, token: str, mode: int) -> bool:
-    url = f"{API_BASE_URL.format(ip=ip)}/configurations"
-    headers = _build_headers(token)
-    payload = {"EM_OperatingMode": str(mode)}
-
-    _LOGGER.debug(f"Sende PUT-Anfrage an {url} mit payload: {payload}")
-
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-        try:
-            async with session.put(url, data=payload, headers=headers) as response:
-                if response.status == 200:
-                    _LOGGER.info(f"EM_OperatingMode erfolgreich auf {mode} gesetzt.")
-                    return True
-                else:
-                    error_message = await response.text()
-                    _LOGGER.error(
-                        f"Fehler beim Setzen des EM_OperatingMode: {response.status}, Antwort: {error_message}"
-                    )
-                    return False
-        except Exception as e:
-            _LOGGER.error(f"Exception beim Setzen des EM_OperatingMode: {e}")
-            return False
-
-async def set_battery_power(ip: str, token: str, direction: str, watts: int) -> bool:
-    if direction not in ["charge", "discharge"]:
-        _LOGGER.error("Ungültige Richtung. Verwenden Sie 'charge' oder 'discharge'.")
-        return False
-
-    if watts <= 0:
-        _LOGGER.error("Watt-Leistung muss größer als 0 sein.")
-        return False
-
-    url = f"{API_BASE_URL.format(ip=ip)}/setpoint/{direction}/{watts}"
-    headers = _build_headers(token)
-
-    _LOGGER.debug(f"Sende POST-Anfrage an {url} mit direction={direction} und watts={watts}")
-
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-        try:
-            async with session.post(url, headers=headers) as response:
-                if response.status == 200:
-                    _LOGGER.info(f"Batterieleistung erfolgreich gesetzt: {direction}, {watts}W")
-                    return True
-                else:
-                    error_message = await response.text()
-                    _LOGGER.error(
-                        f"Fehler beim Setzen der Batterieleistung: {response.status}, Antwort: {error_message}"
-                    )
-                    return False
-        except Exception as e:
-            _LOGGER.error(f"Exception beim Setzen der Batterieleistung: {e}")
-            return False
+async def set_battery_power(session, ip, token, direction, watts):
+    if direction not in ("charge", "discharge") or watts < 0:
+        raise HomeAssistantError("Invalid power setpoint")
+    await _request(session, "POST", ip, token, f"setpoint/{direction}/{watts}")
