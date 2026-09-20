@@ -1,3 +1,11 @@
+# 1.1.0 — stable
+
+- Promote the compatibility and battery-selection changes from rc.1 and rc.2 to stable.
+- Keep the dashboard JavaScript module URL permanently at `/local/sonnenbatteriecard.js`.
+- Existing resources and cards can be reused; no card recreation is required.
+- The user confirmed the card test. JavaScript regression checks and 14 isolated
+  Python tests pass; these do not replace validation across all battery models.
+
 # 1.1.0-rc.2 — battery selection in the control card
 
 - Automatically select the only battery; show a device-name selector only for multiple batteries.

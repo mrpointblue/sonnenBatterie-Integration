@@ -16,17 +16,18 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   https://github.com/flixlix/power-flow-card-plus
 
-## Version 1.1.0-rc.2 compatibility update
+## Version 1.1.0 compatibility update
 
-Version `1.1.0` is the planned minor release after stable `1.0.10`.
+Version `1.1.0` is the stable minor release following `1.0.10`.
 It includes compatibility fixes and new control/configuration capabilities.
-`1.1.0-rc.2` is a pre-release for testing; `1.0.10` remains the stable release.
+Version `1.1.0` includes the changes tested in the release candidates.
 Options now reload the integration. Legacy entity/device identifiers are frozen
 on the first updated setup, so later IP/prefix changes preserve registry identity.
 Already orphaned entities from older prefix/IP changes are not merged automatically.
 Unavailable API endpoints mark their sensors unavailable; total connection failure
 causes setup retry. Timestamp values without a timezone are reported as unknown.
-The target is HA 2026.9; a real HA/device smoke test is still required.
+The target is HA 2026.9. The user confirmed the card test; automated tests use
+isolated HA interfaces and do not certify every battery model.
 
 ## Compatibility
 This integration works with SonnenBatterie systems starting from the Eco8 generation and newer.
@@ -70,9 +71,11 @@ Integration comes with a custom card to set Operating Mode, charge or discharge 
 
 
 The integration copies the optional card to `www/sonnenbatteriecard.js`.
-Add `/local/sonnenbatteriecard.js?v=1.1.0-rc.2` as a JavaScript module under
-Settings → Dashboards → Resources (advanced mode). Update the existing resource
-URL if the card was already installed; do not register it twice. If `www` was
+Add `/local/sonnenbatteriecard.js` as a JavaScript module under
+Settings → Dashboards → Resources (advanced mode). Keep this resource URL for
+future updates; do not register it twice. If an older URL contains `?v=...`,
+remove that query suffix from the existing resource. After updating, reload the
+integration and refresh the browser cache if the old card is still shown. If `www` was
 created for the first time, restart HA to enable `/local` serving.
 Then add the card to your dashboard:
 
