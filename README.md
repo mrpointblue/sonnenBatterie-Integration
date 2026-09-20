@@ -16,11 +16,11 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   https://github.com/flixlix/power-flow-card-plus
 
-## Version 1.1.0-rc.1 compatibility update
+## Version 1.1.0-rc.2 compatibility update
 
 Version `1.1.0` is the planned minor release after stable `1.0.10`.
 It includes compatibility fixes and new control/configuration capabilities.
-`1.1.0-rc.1` is a pre-release for testing; `1.0.10` remains the stable release.
+`1.1.0-rc.2` is a pre-release for testing; `1.0.10` remains the stable release.
 Options now reload the integration. Legacy entity/device identifiers are frozen
 on the first updated setup, so later IP/prefix changes preserve registry identity.
 Already orphaned entities from older prefix/IP changes are not merged automatically.
@@ -70,21 +70,28 @@ Integration comes with a custom card to set Operating Mode, charge or discharge 
 
 
 The integration copies the optional card to `www/sonnenbatteriecard.js`.
-Add `/local/sonnenbatteriecard.js?v=1.1.0-rc.1` as a JavaScript module under
+Add `/local/sonnenbatteriecard.js?v=1.1.0-rc.2` as a JavaScript module under
 Settings → Dashboards → Resources (advanced mode). Update the existing resource
 URL if the card was already installed; do not register it twice. If `www` was
 created for the first time, restart HA to enable `/local` serving.
-Then add the card manually to your dashboard. Each card can target a battery
-using `entity`, an existing entity belonging to that battery. This is required
-when multiple batteries are loaded. `max_power_entity` optionally selects the
-sensor used to display the inverter limit.
+Then add the card to your dashboard:
 
 ```yaml
 type: custom:sonnenbatterie-card
-entity: sensor.sonnen_ac_power
-max_power_entity: sensor.sonnen_max_inverter_power
-
 ```
+
+With one battery, the card selects it automatically and shows no battery selector.
+With multiple batteries, a selector displays their Home Assistant device names.
+Select the battery before sending an operating-mode or power command. No sensor
+ID needs to be entered. Unavailable batteries cannot receive commands. The
+selection stays in place during state updates; reopening the dashboard requires
+selection again when multiple batteries exist. If the selected battery disappears,
+commands remain disabled instead of switching to another battery.
+
+Existing `entity` configurations remain supported as an initial selection.
+`max_power_entity` is optional; it is used only if it belongs to the selected
+battery. Otherwise the card looks up that battery's inverter-limit sensor.
+
 Service example (use an actual entity ID from your installation):
 ```yaml
 action: sonnenbatterie.set_em_operating_mode
@@ -254,7 +261,7 @@ of retaining both versions. Merge these sections with existing YAML sections.
 - No Data >> If no data appears, verify the IP address and token entered in the integration.
 - Charging / Discharging not possible Ensure the `JSON API for Write` is enabled in the SonnenBatterie dashboard.
 - Mode 11 and 4 not supported by API
-- With multiple batteries, configure an explicit `entity` in each control card.
+- With multiple batteries, choose the intended battery in the card before sending a command.
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.

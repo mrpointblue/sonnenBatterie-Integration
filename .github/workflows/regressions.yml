@@ -10,3 +10,7 @@ jobs:
           python-version: "3.14"
       - run: python -B -m unittest discover -s tests -v
       - run: python -m compileall -q custom_components
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node tests/test_card.js

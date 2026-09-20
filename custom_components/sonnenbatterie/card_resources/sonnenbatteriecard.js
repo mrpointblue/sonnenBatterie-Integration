@@ -4,6 +4,8 @@ class SonnenBatteryCard extends HTMLElement {
             throw new Error('entity muss eine Entitäts-ID der Batterie sein.');
         }
         this.config = config;
+        this._selectedBattery = null;
+        this._selectionInitialized = false;
     }
 
     set hass(hass) {
@@ -24,6 +26,9 @@ class SonnenBatteryCard extends HTMLElement {
                         font-weight: bold;
                         margin-bottom: 16px;
                     }
+
+                    [hidden] { display: none !important; }
+                    button:disabled { opacity: 0.5; cursor: default; }
 
                     .row {
                         display: flex;
@@ -79,6 +84,12 @@ class SonnenBatteryCard extends HTMLElement {
                 <ha-card>
                     <div class="header">Sonnen Battery Control</div>
 
+                    <div id="battery_row" class="row" hidden>
+                        <label for="battery">Batterie:</label>
+                        <select id="battery" aria-label="Batterie auswählen"></select>
+                    </div>
+                    <p id="battery_status" role="status" aria-live="polite"></p>
+
                     <!-- Operating Mode Section -->
                     <div class="section">
                         <div class="row">
@@ -115,22 +126,16 @@ class SonnenBatteryCard extends HTMLElement {
             `;
             this.content = this.querySelector('ha-card');
 
-            const maxPowerLabel = this.querySelector("#max_power_label");
-
-            // Hole die maximale Leistung und aktualisiere das Label
-            this._updateMaxPowerLabel(hass, maxPowerLabel);
+            this.querySelector('#battery').addEventListener('change', (event) => {
+                this._selectedBattery = event.target.value || null;
+                this._selectionInitialized = true;
+                this._renderBatteries();
+            });
 
             // Event-Handler für Betriebsmodus
             this.querySelector('#set_em_mode').addEventListener('click', () => {
                 const emMode = parseInt(this.querySelector('#em_operating_mode').value, 10);
-                this._hass.callService('sonnenbatterie', 'set_em_operating_mode', {
-                    mode: emMode,
-                    ...this._target(),
-                }).then(() => {
-                    alert('Modus erfolgreich angewendet!');
-                }).catch(() => {
-                    alert('Fehler beim Anwenden des Modus!');
-                });
+                this._sendCommand('set_em_operating_mode', {mode: emMode});
             });
 
             // Event-Handler für Leistung und Richtung
@@ -141,32 +146,129 @@ class SonnenBatteryCard extends HTMLElement {
                     alert('Bitte eine ganze, nicht negative Wattzahl eingeben.');
                     return;
                 }
-                this._hass.callService('sonnenbatterie', 'set_battery_power', {
-                    direction: direction,
-                    ...this._target(),
-                    watts: watts,
-                }).then(() => {
-                    alert('Leistung erfolgreich angewendet!');
-                }).catch(() => {
-                    alert('Fehler beim Anwenden der Leistung!');
-                });
+                this._sendCommand('set_battery_power', {direction, watts});
             });
         }
-        this._updateMaxPowerLabel(hass, this.querySelector('#max_power_label'));
+        this._renderBatteries();
+        // Registry data changes less often than sensor states. Recheck on
+        // reconnect and periodically, without querying on every state update.
+        if (this._connection !== hass.connection || !this._lastRegistryFetch ||
+            Date.now() - this._lastRegistryFetch > 30000) {
+            this._loadBatteries();
+        }
     }
 
-    _target() {
-        return this.config.entity ? {entity_id: this.config.entity} : {};
+    async _loadBatteries() {
+        if (this._loadingBatteries) return;
+        this._loadingBatteries = true;
+        const hass = this._hass;
+        this._lastRegistryFetch = Date.now();
+        this._connection = hass.connection;
+        try {
+            const [entities, devices] = await Promise.all([
+                hass.callWS({type: 'config/entity_registry/list'}),
+                hass.callWS({type: 'config/device_registry/list'}),
+            ]);
+            if (this._hass.connection !== hass.connection) {
+                this._lastRegistryFetch = 0;
+                return;
+            }
+            this._registryEntities = entities;
+            this._registryDevices = new Map(devices.map(device => [device.id, device]));
+            this._registryError = false;
+        } catch (error) {
+            this._registryError = true;
+        } finally {
+            this._loadingBatteries = false;
+            this._renderBatteries();
+        }
     }
 
-    _updateMaxPowerLabel(hass, label) {
-        const maxPowerEntity = this.config.max_power_entity;
-        const state = hass.states[maxPowerEntity];
+    _batteries() {
+        const groups = new Map();
+        for (const entity of this._registryEntities || []) {
+            if (entity.platform !== 'sonnenbatterie' || entity.disabled_by ||
+                !entity.config_entry_id) continue;
+            const state = this._hass.states[entity.entity_id];
+            // Restored states belong to entities no longer supplied by HA.
+            if (!state || state.attributes?.restored) continue;
+            const device = this._registryDevices.get(entity.device_id);
+            if (device?.disabled_by) continue;
+            let battery = groups.get(entity.config_entry_id);
+            if (!battery) {
+                const address = device?.identifiers?.find(([domain]) => domain === 'sonnenbatterie')?.[1];
+                const name = device?.name_by_user || device?.name || 'sonnenBatterie';
+                battery = {id: entity.config_entry_id, name: address && !name.includes(address)
+                    ? `${name} (${address})` : name, entities: [], available: false};
+                groups.set(battery.id, battery);
+            }
+            battery.entities.push(entity);
+            battery.available ||= state.state !== 'unavailable';
+        }
+        return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+    }
 
-        if (state && state.state) {
-            label.textContent = `Maximale Leistung: ${state.state} W`;
-        } else {
-            label.textContent = "Maximale Leistung: Nicht verfügbar";
+    _renderBatteries() {
+        if (!this.content) return;
+        const batteries = this._batteries();
+        if (!this._selectionInitialized && batteries.length) {
+            const configured = batteries.find(b => b.entities.some(e => e.entity_id === this.config.entity));
+            this._selectedBattery = configured?.id || (!this.config.entity && batteries.length === 1
+                ? batteries[0].id : null);
+            this._selectionInitialized = true;
+        }
+        const selected = batteries.find(b => b.id === this._selectedBattery);
+        const select = this.querySelector('#battery');
+        const signature = JSON.stringify(batteries.map(b => [b.id, b.name, b.available]));
+        if (signature !== this._batteryOptions) {
+            this._batteryOptions = signature;
+            select.replaceChildren(new Option('Bitte Batterie auswählen', ''));
+            for (const battery of batteries) {
+                const option = new Option(battery.name + (battery.available ? '' : ' – nicht verfügbar'), battery.id);
+                option.disabled = !battery.available;
+                select.append(option);
+            }
+        }
+        select.value = selected?.id || '';
+        this.querySelector('#battery_row').hidden = batteries.length <= 1;
+        // Never silently redirect a previously selected target to another battery.
+        const ready = Boolean(selected?.available && !this._registryError && !this._sending);
+        this.querySelector('#set_em_mode').disabled = !ready;
+        this.querySelector('#set_power').disabled = !ready;
+        select.disabled = Boolean(this._sending);
+        let message = '';
+        if (this._registryError) message = 'Batterien konnten nicht geladen werden. Bitte die Karte neu laden.';
+        else if (!this._registryEntities) message = 'Batterien werden geladen …';
+        else if (!batteries.length) message = 'Keine aktive sonnenBatterie gefunden. Bitte die Integration prüfen.';
+        else if (!selected && batteries.length > 1) message = 'Bitte die Batterie auswählen, die gesteuert werden soll.';
+        else if (!selected) message = 'Die gewählte Batterie ist nicht mehr vorhanden. Bitte die Karte neu laden.';
+        else if (!selected.available) message = 'Die gewählte Batterie ist nicht verfügbar.';
+        else if (this._sending) message = `Befehl an ${selected.name} wird gesendet …`;
+        this.querySelector('#battery_status').textContent = message;
+        const maxEntity = selected?.entities.find(e => e.entity_id === this.config.max_power_entity) ||
+            selected?.entities.find(e => e.original_name?.endsWith('_Max Inverter Power'));
+        const power = this._hass.states[maxEntity?.entity_id]?.state;
+        this.querySelector('#max_power_label').textContent = power && Number.isFinite(Number(power))
+            ? `Maximale Leistung: ${power} W` : 'Maximale Leistung: Nicht verfügbar';
+    }
+
+    async _sendCommand(service, data) {
+        const battery = this._batteries().find(b => b.id === this._selectedBattery);
+        if (this._sending || this._registryError || !battery?.available) {
+            this._renderBatteries();
+            return;
+        }
+        const entity = battery.entities.find(e => this._hass.states[e.entity_id]?.state !== 'unavailable');
+        this._sending = true;
+        this._renderBatteries();
+        try {
+            await this._hass.callService('sonnenbatterie', service, {...data, entity_id: entity.entity_id});
+            alert(`Befehl an ${battery.name} erfolgreich ausgeführt.`);
+        } catch (error) {
+            alert(`Befehl an ${battery.name} fehlgeschlagen: ${error.message || 'Bitte Verbindung und API-Berechtigungen prüfen.'}`);
+        } finally {
+            this._sending = false;
+            this._renderBatteries();
         }
     }
 

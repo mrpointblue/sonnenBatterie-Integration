@@ -1,3 +1,11 @@
+# 1.1.0-rc.2 — battery selection in the control card
+
+- Automatically select the only battery; show a device-name selector only for multiple batteries.
+- Resolve targets through HA registry membership without requiring sensor IDs.
+- Block commands for missing/unavailable selections and preserve existing entity presets.
+- Display the inverter limit belonging to the selected battery.
+- Add JavaScript regression checks for discovery, selection and command routing.
+
 # 1.1.0-rc.1 — compatibility pre-release
 
 - Use SensorEntity native values, preserve energy precision and parse timestamps.
