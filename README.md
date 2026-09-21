@@ -52,7 +52,7 @@ Actual known Hardware Systems (More possible):
 4. If you want: Create a custom prefix. For example use your serialnumber of the battery system. Default is "sonnen".
 
 ## Custom Card
-Integration comes with a custom card to set Operating Mode, charge or discharge power (For control access activate API Wrte in API settings)
+Integration comes with a custom card to set Operating Mode, charge or discharge power (For control access, activate `API Write` in API settings)
 
 <img width="447" alt="Bildschirmfoto 2025-01-28 um 23 25 55" src="https://github.com/user-attachments/assets/b4b2be9c-0ad9-4911-a16b-6726fb3b68c8" />
 
