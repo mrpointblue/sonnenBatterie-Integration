@@ -30,7 +30,7 @@ Actual known Hardware Systems (More possible):
 ## Configuration of SonnenBatterie
 1. Log in to your battery's dashboard.
 2. Navigate to `Software Integration`.
-3. Enable `JSON API for Reading`.
+3. Enable `JSON API for Reading`. If you want to control your battery system too, enable `JSON API for Writing`.
 4. Copy the token provided for use in the Home Assistant UI.
 
 <img width="1438" alt="Bildschirmfoto 2025-01-23 um 00 45 32" src="https://github.com/user-attachments/assets/25fd5801-0086-43df-82dd-cebf0da51496" />
