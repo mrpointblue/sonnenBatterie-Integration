@@ -16,11 +16,16 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   https://github.com/flixlix/power-flow-card-plus
 
-## Version 1.1.0 compatibility update
+## Version 1.1.1 compatibility update
 
-Version `1.1.0` is the stable minor release following `1.0.10`.
+Version `1.1.1` fixes automatic reauthentication introduced in `1.1.0`.
 It includes compatibility fixes and new control/configuration capabilities.
-Version `1.1.0` includes the changes tested in the release candidates.
+The configured token has no integration-managed expiry and is only changed by
+the user in integration options. HTTP 401/403 responses mark the affected
+endpoint unavailable and are retried with the same token; they do not request
+a new token or stop polling other endpoints. Actual API permissions still apply.
+After updating, restart Home Assistant to resume entries previously stopped by
+authentication errors. Any already-open reauthentication dialog can be dismissed.
 Options now reload the integration. Legacy entity/device identifiers are frozen
 on the first updated setup, so later IP/prefix changes preserve registry identity.
 Already orphaned entities from older prefix/IP changes are not merged automatically.

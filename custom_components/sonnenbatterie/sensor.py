@@ -7,7 +7,6 @@ import aiohttp
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity, UpdateFailed
 from homeassistant.util import dt as dt_util
@@ -46,8 +45,8 @@ class SonnenDataUpdateCoordinator(DataUpdateCoordinator):
                     headers={"Auth-Token": self.token},
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as response:
-                    if response.status in (401, 403):
-                        raise ConfigEntryAuthFailed("Invalid sonnenBatterie token or API permissions")
+                    # HTTP errors affect this endpoint only. Keep the configured
+                    # token and let normal polling retry; never start reauthentication.
                     response.raise_for_status()
                     data = await response.json()
                     expected = list if endpoint.endswith("/powermeter") else dict

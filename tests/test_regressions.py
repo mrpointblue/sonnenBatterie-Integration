@@ -145,10 +145,29 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(UpdateFailed):
             await coordinator._async_update_data()
 
-    async def test_auth_failure_propagates(self):
-        coordinator = self.coordinator(lambda *a, **kw: Response(401))
-        with self.assertRaises(AuthFailed):
-            await coordinator._async_update_data()
+    async def test_denied_endpoints_retry_with_unchanged_token(self):
+        for status in (401, 403):
+            coordinator = self.coordinator(lambda *a, **kw: Response(status))
+            for _ in range(2):
+                with self.assertRaises(UpdateFailed):
+                    await coordinator._async_update_data()
+            self.assertEqual(coordinator.token, 'test')
+            for call in self.hass.session.get.call_args_list:
+                self.assertEqual(call.kwargs['headers']['Auth-Token'], 'test')
+            self.hass.session.get.side_effect = lambda url, **kw: Response(
+                200, [{'direction': 'production'}] if url.endswith('/powermeter') else {'USOC': 50})
+            result = await coordinator._async_update_data()
+            self.assertEqual(result['/api/v2/latestdata']['USOC'], 50)
+
+    async def test_single_denied_endpoint_does_not_block_other_data(self):
+        for status in (401, 403):
+            coordinator = self.coordinator(lambda url, **kw:
+                Response(status) if url.endswith('/configurations') else Response(
+                    200, [{'direction': 'production'}] if url.endswith('/powermeter') else {'USOC': 50}))
+            coordinator.data = await coordinator._async_update_data()
+            self.assertIn('/api/v2/status', coordinator.data)
+            self.assertNotIn('/api/v2/configurations', coordinator.data)
+            self.assertEqual(coordinator.token, 'test')
 
     async def test_partial_failure_marks_only_affected_sensors_unavailable(self):
         coordinator = self.coordinator(lambda url, **kw:
@@ -252,21 +271,6 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(HAError):
                 await handlers['set_battery_power'](types.SimpleNamespace(
                     service='set_battery_power', data={'direction': 'charge', 'watts': 0}))
-
-    async def test_reauth_rejects_bad_token_and_reloads_failed_setup(self):
-        entry = self.entry()
-        entry.update_listeners = []
-        flow = self.flow.SonnenBatterieConfigFlow()
-        flow._get_reauth_entry = lambda: entry
-        flow.hass = types.SimpleNamespace(session=Mock(get=Mock(return_value=Response(401))),
-            config_entries=types.SimpleNamespace(async_update_entry=Mock(), async_schedule_reload=Mock()))
-        result = await flow.async_step_reauth_confirm({'token': 'wrong'})
-        self.assertEqual(result['errors']['base'], 'invalid_auth')
-        flow.hass.config_entries.async_update_entry.assert_not_called()
-        flow.hass.session.get.return_value = Response(200)
-        result = await flow.async_step_reauth_confirm({'token': 'new'})
-        self.assertEqual(result['reason'], 'reauth_successful')
-        flow.hass.config_entries.async_schedule_reload.assert_called_once_with('a')
 
     async def test_timestamps_need_timezone_and_energy_is_not_rounded(self):
         coordinator = self.coordinator(lambda *a, **kw: Response())

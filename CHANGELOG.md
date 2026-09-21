@@ -1,3 +1,11 @@
+# 1.1.1 — stable
+
+- Remove automatic reauthentication on HTTP 401/403 and the reauthentication flow.
+- Keep the stored token unchanged; retry failed endpoints through normal polling.
+- Continue reading successful endpoints when another endpoint rejects access.
+- Keep real HTTP failures visible as unavailable data or failed commands.
+- Resource URL remains `/local/sonnenbatteriecard.js`.
+
 # 1.1.0 — stable
 
 - Promote the compatibility and battery-selection changes from rc.1 and rc.2 to stable.

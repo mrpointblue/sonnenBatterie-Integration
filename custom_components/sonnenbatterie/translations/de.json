@@ -9,21 +9,10 @@
           "scan_interval": "Abfrageintervall (Sekunden)",
           "custom_prefix": "Namenspräfix"
         }
-      },
-      "reauth_confirm": {
-        "title": "API-Token",
-        "data": {
-          "token": "Auth-Token"
-        }
       }
     },
     "abort": {
-      "already_configured": "Diese Batterie ist bereits eingerichtet.",
-      "reauth_successful": "Authentifizierung aktualisiert."
-    },
-    "error": {
-      "invalid_auth": "Ungültiger Token oder fehlende API-Berechtigung.",
-      "cannot_connect": "Verbindung fehlgeschlagen."
+      "already_configured": "Diese Batterie ist bereits eingerichtet."
     }
   },
   "options": {
