@@ -16,24 +16,6 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
   https://github.com/flixlix/power-flow-card-plus
 
-## Version 1.1.1 compatibility update
-
-Version `1.1.1` fixes automatic reauthentication introduced in `1.1.0`.
-It includes compatibility fixes and new control/configuration capabilities.
-The configured token has no integration-managed expiry and is only changed by
-the user in integration options. HTTP 401/403 responses mark the affected
-endpoint unavailable and are retried with the same token; they do not request
-a new token or stop polling other endpoints. Actual API permissions still apply.
-After updating, restart Home Assistant to resume entries previously stopped by
-authentication errors. Any already-open reauthentication dialog can be dismissed.
-Options now reload the integration. Legacy entity/device identifiers are frozen
-on the first updated setup, so later IP/prefix changes preserve registry identity.
-Already orphaned entities from older prefix/IP changes are not merged automatically.
-Unavailable API endpoints mark their sensors unavailable; total connection failure
-causes setup retry. Timestamp values without a timezone are reported as unknown.
-The target is HA 2026.9. The user confirmed the card test; automated tests use
-isolated HA interfaces and do not certify every battery model.
-
 ## Compatibility
 This integration works with SonnenBatterie systems starting from the Eco8 generation and newer.
 Actual known Hardware Systems (More possible):
@@ -264,12 +246,13 @@ sensor:
 Use your actual source entity IDs. Replace legacy template definitions instead
 of retaining both versions. Merge these sections with existing YAML sections.
 
-## Known Issues
-- No Data >> Ensure the `JSON API for Reading` is enabled in the SonnenBatterie dashboard.
-- No Data >> If no data appears, verify the IP address and token entered in the integration.
-- Charging / Discharging not possible Ensure the `JSON API for Write` is enabled in the SonnenBatterie dashboard.
-- Mode 11 and 4 not supported by API
-- With multiple batteries, choose the intended battery in the card before sending a command.
+## Troubleshooting
+- **No sensor data:** Enable `JSON API for Reading` in the battery dashboard and check the configured IP address and token.
+- **Charging or discharging fails:** Enable `JSON API for Write` and select manual operating mode (1) before sending a power setpoint. Check the Home Assistant logs for API errors.
+- **Old card still displayed after updating:** Reload the integration or restart Home Assistant, then refresh the browser cache. Keep the resource URL `/local/sonnenbatteriecard.js`.
+
+## Supported operating modes
+The integration accepts modes **1, 2, 6 and 10**. Modes 4 and 11 are not offered or accepted by the integration. Availability of the supported modes on a particular battery depends on its firmware and configuration.
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.
