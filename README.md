@@ -98,6 +98,7 @@ Modes:
 - "2": "Self Consumption",
 - "6": "Extension Mode",
 - "10": "Time Of Use",
+- "11": "Automatic optimization",
 
 ## Overview supported sensors
 
@@ -252,7 +253,9 @@ of retaining both versions. Merge these sections with existing YAML sections.
 - **Old card still displayed after updating:** Reload the integration or restart Home Assistant, then refresh the browser cache. Keep the resource URL `/local/sonnenbatteriecard.js`.
 
 ## Supported operating modes
-The integration accepts modes **1, 2, 6 and 10**. Modes 4 and 11 are not offered or accepted by the integration. Availability of the supported modes on a particular battery depends on its firmware and configuration.
+The integration accepts modes **1, 2, 6, 10 and 11**. Mode 4 is not offered or accepted by the integration. Availability of the supported modes on a particular battery depends on its firmware and configuration.
+
+For **sB10h**, use **11 — Automatic optimization** instead of mode 2 (Self Consumption). Mode 2 does not work for this model, as reported by the user. Select mode 11 in the control card or pass `mode: 11` to `sonnenbatterie.set_em_operating_mode`.
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.

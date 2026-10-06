@@ -14,7 +14,7 @@ async def _request(session, method, ip, token, path, data=None):
         raise HomeAssistantError("sonnenBatterie command failed") from err
 
 async def set_em_operating_mode(session, ip, token, mode):
-    if mode not in (1, 2, 6, 10):
+    if mode not in (1, 2, 6, 10, 11):
         raise HomeAssistantError("Unsupported operating mode")
     await _request(session, "PUT", ip, token, "configurations", {"EM_OperatingMode": str(mode)})
 

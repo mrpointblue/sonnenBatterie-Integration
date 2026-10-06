@@ -223,7 +223,36 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(HAError):
             await self.control.set_battery_power(session, '192.0.2.1', 'test', 'charge', 1)
         with self.assertRaises(HAError):
-            await self.control.set_em_operating_mode(session, '192.0.2.1', 'test', 11)
+            await self.control.set_em_operating_mode(session, '192.0.2.1', 'test', 4)
+
+    async def test_mode_11_is_sent_to_the_selected_battery(self):
+        entry = self.entry('b')
+        entry.options = {'ip_address': '192.0.2.11', 'token': 'selected-token'}
+        handlers = {}
+        schemas = {}
+        services = Mock()
+        services.has_service.return_value = False
+        def register(domain, name, handler, **kwargs):
+            handlers[name] = handler
+            schemas[name] = kwargs.get('schema')
+        services.async_register.side_effect = register
+        session = Mock(request=Mock(return_value=Response(200)))
+        registry = Mock()
+        registry.async_get.return_value = types.SimpleNamespace(
+            platform='sonnenbatterie', config_entry_id='b')
+        hass = types.SimpleNamespace(
+            data={'sonnenbatterie': {'a': self.entry('a'), 'b': entry}},
+            services=services, session=session, registry=registry)
+        await self.service.async_register_services(hass)
+        # Stubbed vol.All/vol.In expose the configured choices for this check.
+        self.assertIn(11, schemas['set_em_operating_mode']['mode'][1])
+        await handlers['set_em_operating_mode'](types.SimpleNamespace(
+            service='set_em_operating_mode', data={'entity_id': ['sensor.b'], 'mode': 11}))
+        session.request.assert_called_once()
+        self.assertEqual(session.request.call_args.args,
+                         ('PUT', 'http://192.0.2.11/api/v2/configurations'))
+        self.assertEqual(session.request.call_args.kwargs['data'], {'EM_OperatingMode': '11'})
+        self.assertEqual(session.request.call_args.kwargs['headers'], {'Auth-Token': 'selected-token'})
 
     async def test_options_saved_without_overwriting_identity(self):
         flow = self.options.SonnenOptionsFlow()

@@ -48,7 +48,7 @@ async def async_register_services(hass):
         vol.Required("watts"): vol.All(vol.Coerce(int), vol.Range(min=0)),
     }))
     hass.services.async_register(DOMAIN, "set_em_operating_mode", handle_control, schema=vol.Schema({
-        **target, vol.Required("mode"): vol.All(vol.Coerce(int), vol.In([1, 2, 6, 10])),
+        **target, vol.Required("mode"): vol.All(vol.Coerce(int), vol.In([1, 2, 6, 10, 11])),
     }))
 
     async def publish(call):

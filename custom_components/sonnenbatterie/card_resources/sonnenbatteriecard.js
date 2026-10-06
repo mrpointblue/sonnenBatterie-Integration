@@ -99,6 +99,7 @@ class SonnenBatteryCard extends HTMLElement {
                                 <option value="2">Eigenverbrauchsoptimierung</option>
                                 <option value="6">Erweiterungsmodus</option>
                                 <option value="10">Time Of Use</option>
+                                <option value="11">Automatic optimization</option>
                             </select>
                         </div>
                         <button id="set_em_mode">Modus Anwenden</button>

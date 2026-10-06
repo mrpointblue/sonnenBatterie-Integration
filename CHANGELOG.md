@@ -1,3 +1,8 @@
+# 1.1.2-dev.1 — development pre-release
+
+- Support mode 11 (Automatic optimization) in the control card, action selector and API commands.
+- Document mode 11 for sB10h instead of self-consumption mode 2, based on the user report.
+
 # 1.1.1 — stable
 
 - Remove automatic reauthentication on HTTP 401/403 and the reauthentication flow.

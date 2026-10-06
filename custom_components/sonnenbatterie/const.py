@@ -105,4 +105,5 @@ OPERATING_MODES = {
     "2": "Eigenverbrauchsoptimierung",
     "6": "Erweiterungsmodus",
     "10": "Time Of Use",
+    "11": "Automatic optimization",
 }

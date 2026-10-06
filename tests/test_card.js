@@ -46,8 +46,8 @@ function card(entities, states, config = {}) {
     c._selectedBattery = 'b'; c._renderBatteries();
     await c._sendCommand('set_battery_power', {direction: 'charge', watts: 0});
     assert(c.sent[2].entity_id === b.entity_id && c.sent[2].watts === 0, 'Selected second battery receives zero setpoint');
-    await c._sendCommand('set_em_operating_mode', {mode: 2});
-    assert(c.sent[1] === 'set_em_operating_mode' && c.sent[2].entity_id === b.entity_id, 'Mode uses same selection');
+    await c._sendCommand('set_em_operating_mode', {mode: 11});
+    assert(c.sent[1] === 'set_em_operating_mode' && c.sent[2].entity_id === b.entity_id && c.sent[2].mode === 11, 'Mode uses same selection');
     delete c._hass.states[b.entity_id]; c._renderBatteries();
     assert(c.querySelector('#set_power').disabled && c._selectedBattery === 'b', 'Removed battery must not redirect commands');
     c._hass.states[b.entity_id] = {state: '60', attributes: {}}; c._renderBatteries();
