@@ -41,7 +41,7 @@ set_battery_power:
   name: Set Battery Power
   description: >
     Setzt die Lade- oder Entladeleistung der sonnenBatterie in Watt.
-    Dies funktioniert nur im manuellen Betriebsmodus.
+    Außerhalb des manuellen Betriebsmodus zeitlich begrenzt (standardmäßig 30 Sekunden). VPP kann den Befehl ablehnen. Bei Hybridgeräten beeinflusst die PV-Leistung den resultierenden Batteriefluss.
   fields:
     entity_id:
       name: Batterie
@@ -84,3 +84,115 @@ set_battery_power:
 publish_all_sensors:
   name: Publish all sensors
   description: Emit current states of loaded sonnenBatterie entities as events.
+
+set_site_setpoint:
+  name: Site AC Setpoint
+  description: "Zeitlich begrenzter AC-Sollwert. Positiv = Bezug, negativ = Abgabe. Null ist ein aktiver Sollwert, kein Abbrechen. Erfordert unterstützte Site-API/EM2."
+  fields:
+    entity_id:
+      name: Batterie
+      selector:
+        entity:
+          filter:
+            integration: sonnenbatterie
+    duration:
+      name: Dauer
+      description: Gültigkeit in ganzen Sekunden, standardmäßig 30.
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 86400
+          mode: box
+          unit_of_measurement: s
+    watts:
+      name: AC-Sollwert
+      required: true
+      selector:
+        number:
+          min: -2147483648
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: W
+
+set_site_limits:
+  name: Site Power Limits
+  description: "Zeitlich begrenzte Limits. Mindestens ein Limit angeben. Null bedeutet Grenze null. Erfordert unterstützte Site-API/EM2."
+  fields:
+    entity_id:
+      name: Batterie
+      selector:
+        entity:
+          filter:
+            integration: sonnenbatterie
+    duration:
+      name: Dauer
+      description: Gültigkeit in ganzen Sekunden, standardmäßig 30.
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 86400
+          mode: box
+          unit_of_measurement: s
+    i_bess_storage_max_charge_limit:
+      name: Maximaler Ladestrom
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: A
+    i_bess_storage_max_discharge_limit:
+      name: Maximaler Entladestrom
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: A
+    p_bess_inv_max_export_limit:
+      name: Maximale Wechselrichterabgabe
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: W
+    p_bess_inv_max_import_limit:
+      name: Maximaler Wechselrichterbezug
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: W
+    p_gcp_max_export_limit:
+      name: Maximale Netzeinspeisung
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: W
+    p_gcp_max_import_limit:
+      name: Maximaler Netzbezug
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 2147483647
+          step: 1
+          mode: box
+          unit_of_measurement: W

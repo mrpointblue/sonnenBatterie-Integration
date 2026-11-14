@@ -4,6 +4,7 @@ Run: python3 -B -m unittest discover -s tests -v
 These exercise integration behavior, not Home Assistant framework compatibility.
 """
 import asyncio
+from enum import Enum
 import importlib
 from pathlib import Path
 import sys
@@ -19,6 +20,10 @@ def module(name, **attrs):
     value.__dict__.update(attrs)
     sys.modules[name] = value
     return value
+
+
+class EntityCategory(Enum):
+    DIAGNOSTIC = "diagnostic"
 
 
 class HAError(Exception):
@@ -98,6 +103,7 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
         module('homeassistant.components')
         module('homeassistant.components.sensor', SensorEntity=type('SensorEntity', (), {}))
         module('homeassistant.helpers')
+        module('homeassistant.helpers.entity', EntityCategory=EntityCategory)
         module('homeassistant.helpers.config_validation', string=str, entity_ids=list,
                config_entry_only_config_schema=lambda domain: {})
         module('homeassistant.helpers.entity_registry', async_get=lambda hass: hass.registry)
@@ -330,6 +336,68 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
             await self.integration.async_setup_entry(hass, entry)
         self.assertEqual(entry.data['identity_ip'], '192.0.2.1')
         self.assertEqual(entry.data['identity_prefix'], 'sonnen')
+
+
+    async def test_optional_diagnostics_and_missing_fields(self):
+        coordinator = self.coordinator(lambda *a, **kw: Response())
+        definition = next(s for s in self.sensor.SENSORS if s['name'] == 'DC Shutdown Reason')
+        entity = self.sensor.SonnenBatterieSensor(coordinator, definition, 'sonnen')
+        coordinator.data = {'/api/v2/latestdata': {'ic_status': {'DC Shutdown Reason': {'Alarm': True, 'Other': False}}}}
+        self.assertEqual(entity.native_value, 1)
+        self.assertEqual(entity.extra_state_attributes['flags']['Alarm'], True)
+        self.assertTrue(entity.available)
+        coordinator.data = {'/api/v2/latestdata': {'USOC': 50}}
+        self.assertFalse(entity.available)
+        self.assertIsNone(entity.native_value)
+        self.assertFalse(entity._attr_entity_registry_enabled_default)
+        self.assertIs(entity._attr_entity_category, EntityCategory.DIAGNOSTIC)
+
+    async def test_site_action_routes_to_selected_battery_options(self):
+        entry = self.entry('b')
+        entry.options = {'ip_address': '192.0.2.88', 'token': 'current'}
+        handlers = {}
+        services = Mock()
+        services.has_service.return_value = False
+        services.async_register.side_effect = lambda domain, name, handler, **kw: handlers.update({name: handler})
+        registry = Mock()
+        registry.async_get.return_value = types.SimpleNamespace(platform='sonnenbatterie', config_entry_id='b')
+        hass = types.SimpleNamespace(data={'sonnenbatterie': {'a': self.entry(), 'b': entry}},
+                                     services=services, registry=registry, session=object())
+        await self.service.async_register_services(hass)
+        with patch.object(self.service, 'set_site_setpoint', AsyncMock()) as command:
+            await handlers['set_site_setpoint'](types.SimpleNamespace(service='set_site_setpoint',
+                data={'entity_id': ['sensor.b'], 'watts': -250, 'duration': 45}))
+            command.assert_awaited_once_with(hass.session, '192.0.2.88', 'current', -250, 45)
+        with patch.object(self.service, 'set_site_limits', AsyncMock()) as command:
+            await handlers['set_site_limits'](types.SimpleNamespace(service='set_site_limits',
+                data={'entity_id': ['sensor.b'], 'p_gcp_max_import_limit': 0}))
+            command.assert_awaited_once_with(hass.session, '192.0.2.88', 'current', {'p_gcp_max_import_limit': 0}, 30)
+
+    async def test_site_commands_keep_sign_duration_and_selected_limits(self):
+        session = Mock(request=Mock(return_value=Response(200, {'p_bess_inv_export_import_setpoint': 0})))
+        for watts in (-1500, 0, 1500):
+            await self.control.set_site_setpoint(session, '192.0.2.1', 'test', watts, 60)
+            call = session.request.call_args
+            self.assertEqual(call.args, ('PUT', 'http://192.0.2.1/api/v2/site/setpoint'))
+            self.assertEqual(call.kwargs['data'], {'p_bess_inv_export_import_setpoint': watts, 'duration': 'PT60S'})
+        session.request.return_value = Response(200, {'p_gcp_max_import_limit': 1000})
+        await self.control.set_site_limits(session, '192.0.2.1', 'test', {'p_gcp_max_import_limit': 0})
+        self.assertEqual(session.request.call_args.kwargs['data'], {'p_gcp_max_import_limit': 0, 'duration': 'PT30S'})
+
+    async def test_site_validation_and_unsupported_device_never_write(self):
+        session = Mock(request=Mock(return_value=Response(404)))
+        with self.assertRaises(HAError):
+            await self.control.set_site_setpoint(session, '192.0.2.1', 'test', 100)
+        self.assertEqual(session.request.call_count, 1)
+        self.assertEqual(session.request.call_args.args[0], 'GET')
+        session.request.reset_mock()
+        for limits in ({}, {'unknown': 1}, {'p_gcp_max_import_limit': -1}):
+            with self.assertRaises(HAError):
+                await self.control.set_site_limits(session, '192.0.2.1', 'test', limits)
+        for seconds in (0, -1, 86401, 1.5):
+            with self.assertRaises(HAError):
+                await self.control.set_site_setpoint(session, '192.0.2.1', 'test', 100, seconds)
+        session.request.assert_not_called()
 
 
 if __name__ == '__main__':

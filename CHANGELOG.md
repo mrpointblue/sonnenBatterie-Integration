@@ -1,3 +1,17 @@
+# 1.1.2-dev.2 — development pre-release
+
+- Use the EntityCategory enum required by Home Assistant when registering diagnostic entities.
+- Add optional state-of-health, Wh capacity, cell voltage and IC diagnostic sensors.
+- Add optional site limit and AC setpoint sensors; existing entity IDs remain unchanged.
+- Add selected-battery actions for site setpoints and limits with explicit duration (default 30 seconds).
+- Probe the corresponding read endpoint before writing; unsupported/rejected site commands fail without legacy fallback.
+- Preserve AC sign convention: positive site setpoint imports, negative exports.
+- Missing optional fields are unavailable, never replaced with zero. New sensors are disabled by default.
+- Correct legacy setpoint action documentation for timed operation outside manual mode.
+- User confirmed additional sensor registration in Home Assistant 2026.11.1 after the EntityCategory fix.
+- Local validation: 19 isolated Python regression tests pass; site writes remain unverified on hardware.
+- IO/standby controls, site configuration migration and ToU changes remain deferred pending device verification.
+
 # 1.1.2-dev.1 — development pre-release
 
 - Support mode 11 (Automatic optimization) in the control card, action selector and API commands.

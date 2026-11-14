@@ -4,6 +4,20 @@
 
 This custom integration allows you to monitor and control your SonnenBatterie system via Home Assistant. It provides detailed sensor data such as power consumption, production, and battery state.
 
+## Development pre-release: 1.1.2-dev.2
+
+[Download 1.1.2-dev.2](https://github.com/mrpointblue/sonnenBatterie-Integration/releases/tag/v1.1.2-dev.2).
+This is a development pre-release. In HACS, enable pre-release versions in the download dialog
+and select `1.1.2-dev.2`. For manual installation, extract the release ZIP into the HA configuration
+directory so that the files are under `custom_components/sonnenbatterie`.
+**Restart Home Assistant fully after updating** to load the changed Python code.
+
+The 23 additional sensors are **disabled by default**. Open **Settings → Devices & services → Entities**,
+filter by the SonnenBatterie integration, include disabled entities and enable the desired sensors.
+Disabled sensors do not appear in Developer Tools → States. Entity names use your configured prefix.
+If they are missing from the entity list, check the logs after restarting.
+The diagnostic entity registration error found during testing is fixed in this release.
+
 ## Features
 - Live power consumption and production data.
 - Detailed power meter data.
@@ -11,6 +25,8 @@ This custom integration allows you to monitor and control your SonnenBatterie sy
 - Energy import/export monitoring.
 - Integrates custom prefix
 - Write OperatingMode & power for charge or discharge
+- Optional battery health and controller diagnostics.
+- Timed site AC setpoints and grid/inverter/storage limits on supported firmware.
 
 ## Recommendation
 - Best Dashbaord integration for energy flow with sonnenBatterie Integration>>
@@ -249,7 +265,7 @@ of retaining both versions. Merge these sections with existing YAML sections.
 
 ## Troubleshooting
 - **No sensor data:** Enable `JSON API for Reading` in the battery dashboard and check the configured IP address and token.
-- **Charging or discharging fails:** Enable `JSON API for Write` and select manual operating mode (1) before sending a power setpoint. Check the Home Assistant logs for API errors.
+- **Charging or discharging fails:** Enable `JSON API for Writing`. Legacy power commands are time-limited outside manual mode (default 30 seconds); manual mode has no such timeout. VPP may reject commands, and PV affects the resulting battery flow on hybrid systems. Site commands require supported firmware/EM2. Check the Home Assistant logs for API errors.
 - **Old card still displayed after updating:** Reload the integration or restart Home Assistant, then refresh the browser cache. Keep the resource URL `/local/sonnenbatteriecard.js`.
 
 ## Supported operating modes
@@ -259,3 +275,93 @@ For **sB10h**, use **11 — Automatic optimization** instead of mode 2 (Self Con
 
 ## Contribution
 Feel free to open issues or create pull requests to contribute to this project.
+
+
+## Additional sensors in 1.1.2-dev.2
+
+All entries below are optional diagnostic entities, disabled by default. Existing entity identifiers
+are preserved. Missing fields or endpoints are unavailable rather than replaced with zero.
+
+| Sensor name (without prefix) | API source / field | Unit or meaning |
+| --- | --- | --- |
+| Battery State of Health | `/api/v2/battery` / `stateofhealth` | % |
+| Full Charge Energy | `/api/v2/battery` / `fullchargecapacitywh` | Wh |
+| Maximum Cell Voltage | `/api/v2/battery` / `maximumcellvoltage` | V |
+| Minimum Cell Voltage | `/api/v2/battery` / `minimumcellvoltage` | V |
+| Remaining Energy | `/api/v2/status` / `RemainingCapacity_Wh` | Wh |
+| BMS State | `/api/v2/latestdata` / `ic_status → statebms` | Status |
+| Controller State | `/api/v2/latestdata` / `ic_status → statecorecontrolmodule` | Status |
+| Inverter State | `/api/v2/latestdata` / `ic_status → stateinverter` | Status |
+| DC Shutdown Reason | `/api/v2/latestdata` / `ic_status → DC Shutdown Reason` | Active flag count |
+| Standby Reason | `/api/v2/latestdata` / `ic_status → Standby Reason` | Active flag count |
+| Full Charge Reason | `/api/v2/latestdata` / `ic_status → Full Charge Reason` | Active flag count |
+| Setpoint Priority | `/api/v2/latestdata` / `ic_status → Setpoint Priority` | Active flag count |
+| Microgrid Status | `/api/v2/latestdata` / `ic_status → Microgrid Status` | Active flag count |
+| MISC Status Bits | `/api/v2/latestdata` / `ic_status → MISC Status Bits` | Active flag count |
+| System Validation | `/api/v2/latestdata` / `ic_status → System Validation` | Active flag count |
+| Eclipse Status | `/api/v2/latestdata` / `ic_status → Eclipse Led → Eclipse Status` | Status |
+| Site Charge Current Limit | `/api/v2/site/limits` / `i_bess_storage_max_charge_limit` | A |
+| Site Discharge Current Limit | `/api/v2/site/limits` / `i_bess_storage_max_discharge_limit` | A |
+| Site Inverter Export Limit | `/api/v2/site/limits` / `p_bess_inv_max_export_limit` | W |
+| Site Inverter Import Limit | `/api/v2/site/limits` / `p_bess_inv_max_import_limit` | W |
+| Site Grid Export Limit | `/api/v2/site/limits` / `p_gcp_max_export_limit` | W |
+| Site Grid Import Limit | `/api/v2/site/limits` / `p_gcp_max_import_limit` | W |
+| Site AC Setpoint | `/api/v2/site/setpoint` / `p_bess_inv_export_import_setpoint` | W |
+
+Diagnostic groups count flags that are true and expose the complete group in their `flags` attribute.
+These counts are not error severity: flags such as `None`, `Disabled` or normal operating states
+may also be true. Field availability depends on battery model and firmware.
+
+## Timed site actions
+
+`sonnenbatterie.set_site_setpoint` and `sonnenbatterie.set_site_limits` accept `duration`
+in whole seconds (1–86400, default 30). The one-day maximum is an integration limit.
+Use `entity_id` to select an entity belonging to the battery; it is required with multiple batteries.
+The corresponding site read endpoint is checked before a write. This verifies read availability,
+not write permission. Unsupported or rejected commands fail without falling back to legacy controls.
+The manufacturer describes EM2 requirements but does not provide a complete model compatibility list.
+
+```yaml
+action: sonnenbatterie.set_site_setpoint
+data:
+  entity_id: sensor.your_battery_entity
+  watts: 1500
+  duration: 30
+```
+
+Replace the example entity ID with an existing entity of your battery.
+Positive watts means **AC import**, negative watts means **AC export**, opposite to `Pac_total_W`.
+Zero is an active command, not cancellation. On hybrid systems PV affects actual battery power;
+the AC setpoint is not a direct battery-power target. The command expires after its duration.
+
+```yaml
+action: sonnenbatterie.set_site_limits
+data:
+  entity_id: sensor.your_battery_entity
+  p_gcp_max_import_limit: 3000
+  p_gcp_max_export_limit: 2000
+  duration: 60
+```
+
+At least one limit is required. Zero means a zero limit, not clearing the limit.
+Device constraints and priorities continue to apply.
+
+| Limit field | Unit | Meaning |
+| --- | --- | --- |
+| `i_bess_storage_max_charge_limit` | A | Maximum storage charge current |
+| `i_bess_storage_max_discharge_limit` | A | Maximum storage discharge current |
+| `p_bess_inv_max_export_limit` | W | Maximum inverter AC export |
+| `p_bess_inv_max_import_limit` | W | Maximum inverter AC import |
+| `p_gcp_max_export_limit` | W | Maximum site grid export |
+| `p_gcp_max_import_limit` | W | Maximum site grid import |
+
+IO/standby, ToU changes and migration to site configuration writes are deferred.
+
+### Validation status
+
+The user confirmed that the additional entities appear in Home Assistant 2026.11.1 after the
+EntityCategory fix. Local validation covers 19 isolated Python regression tests, including enum
+category type, missing diagnostics, selected-battery routing, signed setpoints, durations and rejection
+of unsupported site endpoints. These tests stub Home Assistant and do not replace hardware testing.
+Site writes and real battery responses have not yet been confirmed. JavaScript card tests were not
+run locally because Node.js was unavailable; the card is unchanged. Automated CI results are separate.

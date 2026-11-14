@@ -3,10 +3,10 @@ import voluptuous as vol
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from .const import DOMAIN
-from .battery_control import set_battery_power, set_em_operating_mode
+from .const import DOMAIN, SITE_LIMIT_KEYS
+from .battery_control import set_battery_power, set_em_operating_mode, set_site_setpoint, set_site_limits
 
-SERVICES = ("set_battery_power", "set_em_operating_mode", "publish_all_sensors")
+SERVICES = ("set_battery_power", "set_em_operating_mode", "publish_all_sensors", "set_site_setpoint", "set_site_limits")
 
 
 def resolve_entry(hass, entity_ids):
@@ -38,6 +38,11 @@ async def async_register_services(hass):
         args = (session, config["ip_address"], config["token"])
         if call.service == "set_battery_power":
             await set_battery_power(*args, call.data["direction"], call.data["watts"])
+        elif call.service == "set_site_setpoint":
+            await set_site_setpoint(*args, call.data["watts"], call.data.get("duration", 30))
+        elif call.service == "set_site_limits":
+            limits = {key: call.data[key] for key in SITE_LIMIT_KEYS if key in call.data}
+            await set_site_limits(*args, limits, call.data.get("duration", 30))
         else:
             await set_em_operating_mode(*args, call.data["mode"])
 
@@ -49,6 +54,17 @@ async def async_register_services(hass):
     }))
     hass.services.async_register(DOMAIN, "set_em_operating_mode", handle_control, schema=vol.Schema({
         **target, vol.Required("mode"): vol.All(vol.Coerce(int), vol.In([1, 2, 6, 10, 11])),
+    }))
+
+    duration = {vol.Optional("duration", default=30): vol.All(vol.Coerce(int), vol.Range(min=1, max=86400))}
+    hass.services.async_register(DOMAIN, "set_site_setpoint", handle_control, schema=vol.Schema({
+        **target, **duration,
+        vol.Required("watts"): vol.All(vol.Coerce(int), vol.Range(min=-2147483648, max=2147483647)),
+    }))
+    hass.services.async_register(DOMAIN, "set_site_limits", handle_control, schema=vol.Schema({
+        **target, **duration,
+        **{vol.Optional(key): vol.All(vol.Coerce(int), vol.Range(min=0, max=2147483647))
+           for key in SITE_LIMIT_KEYS},
     }))
 
     async def publish(call):

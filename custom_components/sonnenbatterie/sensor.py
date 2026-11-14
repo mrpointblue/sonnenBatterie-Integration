@@ -8,6 +8,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -68,6 +69,11 @@ class SonnenBatterieSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, sensor, custom_prefix):
         super().__init__(coordinator)
         self._key = sensor["key"]
+        self._path = sensor.get("path", [self._key])
+        self._flags = sensor.get("flags", False)
+        if sensor.get("diagnostic"):
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            self._attr_entity_registry_enabled_default = False
         self._endpoint = sensor["endpoint"]
         self._direction = sensor.get("direction")
         self._attr_name = f"{custom_prefix}_{sensor['name']}"
@@ -88,15 +94,24 @@ class SonnenBatterieSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self):
-        return super().available and self._endpoint in (self.coordinator.data or {})
+        return (super().available
+                and self._endpoint in (self.coordinator.data or {})
+                and self._raw_value() is not None)
 
-    @property
-    def native_value(self):
+    def _raw_value(self):
         data = (self.coordinator.data or {}).get(self._endpoint)
         if isinstance(data, list):
             data = next((item for item in data if isinstance(item, dict)
                          and item.get("direction") == self._direction), {})
-        value = data.get(self._key) if isinstance(data, dict) else None
+        for key in self._path:
+            data = data.get(key) if isinstance(data, dict) else None
+        return data
+
+    @property
+    def native_value(self):
+        value = self._raw_value()
+        if self._flags:
+            return sum(flag is True for flag in value.values()) if isinstance(value, dict) else None
         if self._attr_device_class == "timestamp":
             if not isinstance(value, str):
                 return None
@@ -112,4 +127,7 @@ class SonnenBatterieSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self):
+        if self._flags:
+            value = self._raw_value()
+            return {"flags": value} if isinstance(value, dict) else None
         return {"direction": self._direction} if self._direction else None
