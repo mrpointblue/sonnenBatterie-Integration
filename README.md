@@ -4,11 +4,10 @@
 
 This custom integration allows you to monitor and control your SonnenBatterie system via Home Assistant. It provides detailed sensor data such as power consumption, production, and battery state.
 
-## Development pre-release: 1.1.2-dev.2
+## Stable release: 1.1.2
 
-[Download 1.1.2-dev.2](https://github.com/mrpointblue/sonnenBatterie-Integration/releases/tag/v1.1.2-dev.2).
-This is a development pre-release. In HACS, enable pre-release versions in the download dialog
-and select `1.1.2-dev.2`. For manual installation, extract the release ZIP into the HA configuration
+[Download 1.1.2](https://github.com/mrpointblue/sonnenBatterie-Integration/releases/tag/v1.1.2).
+Update to `1.1.2` through HACS. For manual installation, extract the release ZIP into the HA configuration
 directory so that the files are under `custom_components/sonnenbatterie`.
 **Restart Home Assistant fully after updating** to load the changed Python code.
 
@@ -17,6 +16,10 @@ filter by the SonnenBatterie integration, include disabled entities and enable t
 Disabled sensors do not appear in Developer Tools → States. Entity names use your configured prefix.
 If they are missing from the entity list, check the logs after restarting.
 The diagnostic entity registration error found during testing is fixed in this release.
+The startup failure reported in issue [#19](https://github.com/mrpointblue/sonnenBatterie-Integration/issues/19)
+is also fixed: the initial connection check runs before sensor platform setup, allowing Home Assistant
+to retry the integration after DNS/network failures. Failure of an optional endpoint still permits
+setup when another endpoint responds successfully.
 
 ## Features
 - Live power consumption and production data.
@@ -277,7 +280,7 @@ For **sB10h**, use **11 — Automatic optimization** instead of mode 2 (Self Con
 Feel free to open issues or create pull requests to contribute to this project.
 
 
-## Additional sensors in 1.1.2-dev.2
+## Additional sensors in 1.1.2
 
 All entries below are optional diagnostic entities, disabled by default. Existing entity identifiers
 are preserved. Missing fields or endpoints are unavailable rather than replaced with zero.
@@ -360,8 +363,9 @@ IO/standby, ToU changes and migration to site configuration writes are deferred.
 ### Validation status
 
 The user confirmed that the additional entities appear in Home Assistant 2026.11.1 after the
-EntityCategory fix. Local validation covers 19 isolated Python regression tests, including enum
+EntityCategory fix. Local validation covers 21 isolated Python regression tests, including enum
 category type, missing diagnostics, selected-battery routing, signed setpoints, durations and rejection
-of unsupported site endpoints. These tests stub Home Assistant and do not replace hardware testing.
+of unsupported site endpoints, failed initial connection before platform forwarding, recovery on
+a later setup attempt, shared coordinator reuse and partial startup failures. These tests stub Home Assistant and do not replace hardware testing.
 Site writes and real battery responses have not yet been confirmed. JavaScript card tests were not
 run locally because Node.js was unavailable; the card is unchanged. Automated CI results are separate.

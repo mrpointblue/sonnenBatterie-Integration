@@ -38,11 +38,22 @@ class UpdateFailed(HAError):
     pass
 
 
+class NotReady(HAError):
+    pass
+
+
 class Coordinator:
     def __init__(self, hass, logger, **kwargs):
         self.data = None
         self.last_update_success = True
         self.update_interval = kwargs['update_interval']
+
+    async def async_config_entry_first_refresh(self):
+        # Model HA's conversion; tests below check the integration call boundary.
+        try:
+            self.data = await self._async_update_data()
+        except UpdateFailed as err:
+            raise NotReady(str(err)) from err
 
 
 class CoordinatorEntity:
@@ -99,7 +110,7 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
         module('homeassistant')
         module('homeassistant.core', HomeAssistant=object, callback=lambda f: f)
         module('homeassistant.config_entries', ConfigEntry=object, ConfigFlow=Flow, OptionsFlow=Flow)
-        module('homeassistant.exceptions', HomeAssistantError=HAError, ConfigEntryAuthFailed=AuthFailed)
+        module('homeassistant.exceptions', HomeAssistantError=HAError, ConfigEntryAuthFailed=AuthFailed, ConfigEntryNotReady=NotReady)
         module('homeassistant.components')
         module('homeassistant.components.sensor', SensorEntity=type('SensorEntity', (), {}))
         module('homeassistant.helpers')
@@ -269,7 +280,7 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
 
     async def test_setup_reload_and_unload_lifecycle(self):
         entry = self.entry()
-        hass = types.SimpleNamespace(data={}, config_entries=types.SimpleNamespace(
+        hass = types.SimpleNamespace(data={}, session=Mock(get=Mock(return_value=Response())), config_entries=types.SimpleNamespace(
             async_forward_entry_setups=AsyncMock(), async_reload=AsyncMock(),
             async_unload_platforms=AsyncMock(return_value=True)))
         with patch.object(self.integration, 'async_register_services', AsyncMock()), \
@@ -325,7 +336,7 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
         entry = self.entry()
         entry.data.pop('identity_ip')
         entry.data.pop('identity_prefix')
-        hass = types.SimpleNamespace(data={}, config_entries=types.SimpleNamespace(
+        hass = types.SimpleNamespace(data={}, session=Mock(get=Mock(return_value=Response())), config_entries=types.SimpleNamespace(
             async_forward_entry_setups=AsyncMock(), async_update_entry=Mock()))
         def update(target, data):
             target.add_update_listener.assert_not_called()
@@ -337,6 +348,48 @@ class Regressions(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(entry.data['identity_ip'], '192.0.2.1')
         self.assertEqual(entry.data['identity_prefix'], 'sonnen')
 
+
+    async def test_startup_connection_failure_precedes_forwarding_and_can_recover(self):
+        for failure in (ClientError(), asyncio.TimeoutError()):
+            entry = self.entry()
+            forward = AsyncMock()
+            hass = types.SimpleNamespace(data={}, session=Mock(get=Mock(side_effect=failure)),
+                config_entries=types.SimpleNamespace(async_forward_entry_setups=forward))
+            with patch.object(self.integration, 'async_register_services', AsyncMock()) as services, \
+                 patch.object(self.integration, 'copy_card_to_www', AsyncMock()):
+                with self.assertRaises(NotReady):
+                    await self.integration.async_setup_entry(hass, entry)
+                forward.assert_not_awaited()
+                services.assert_not_awaited()
+                self.assertNotIn('a', hass.data.get('sonnenbatterie', {}))
+                self.assertFalse(hasattr(entry, 'runtime_data'))
+                # Simulate HA retrying after connectivity returns.
+                hass.session.get.side_effect = lambda url, **kw: Response(
+                    200, [{'direction': 'production'}] if url.endswith('/powermeter') else {'USOC': 50})
+                async def setup_sensors(target, platforms):
+                    initial_requests = hass.session.get.call_count
+                    add_entities = Mock()
+                    await self.sensor.async_setup_entry(hass, target, add_entities)
+                    entities = add_entities.call_args.args[0]
+                    self.assertTrue(entities)
+                    self.assertTrue(all(e.coordinator is target.runtime_data for e in entities))
+                    self.assertEqual(hass.session.get.call_count, initial_requests)
+                forward.side_effect = setup_sensors
+                self.assertTrue(await self.integration.async_setup_entry(hass, entry))
+                forward.assert_awaited_once()
+                services.assert_awaited_once()
+                self.assertEqual(entry.runtime_data.data['/api/v2/latestdata']['USOC'], 50)
+
+    async def test_startup_partial_failure_still_forwards(self):
+        entry = self.entry()
+        hass = types.SimpleNamespace(data={}, session=Mock(get=Mock(side_effect=lambda url, **kw:
+            Response(200) if url.endswith('/latestdata') else Response(404))),
+            config_entries=types.SimpleNamespace(async_forward_entry_setups=AsyncMock()))
+        with patch.object(self.integration, 'async_register_services', AsyncMock()), \
+             patch.object(self.integration, 'copy_card_to_www', AsyncMock()):
+            self.assertTrue(await self.integration.async_setup_entry(hass, entry))
+        self.assertEqual(set(entry.runtime_data.data), {'/api/v2/latestdata'})
+        hass.config_entries.async_forward_entry_setups.assert_awaited_once()
 
     async def test_optional_diagnostics_and_missing_fields(self):
         coordinator = self.coordinator(lambda *a, **kw: Response())

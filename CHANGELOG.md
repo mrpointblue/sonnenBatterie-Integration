@@ -1,3 +1,12 @@
+# 1.1.2 — stable
+
+- Include mode 11, optional API diagnostics and timed site controls from dev.1/dev.2.
+- Fix #19: initialize and refresh the coordinator in the integration setup before forwarding sensor setup, so Home Assistant can retry after DNS/network failures.
+- Reuse the initialized coordinator through entry.runtime_data; sensor setup does not perform a second initial refresh.
+- Preserve partial-endpoint operation, stored tokens and existing entity identifiers.
+- Fix diagnostic entity registration with EntityCategory.DIAGNOSTIC; additional sensor visibility was confirmed in Home Assistant 2026.11.1.
+- Validation: 21 isolated Python regression tests pass, including failed startup, recovery, shared coordinator and partial failure. Full HA-runtime recovery and real site writes remain unverified locally.
+
 # 1.1.2-dev.2 — development pre-release
 
 - Use the EntityCategory enum required by Home Assistant when registering diagnostic entities.

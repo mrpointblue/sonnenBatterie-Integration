@@ -9,6 +9,7 @@ from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN, PLATFORMS, DEFAULT_PREFIX
 from .service import async_register_services, async_remove_services
+from .coordinator import SonnenDataUpdateCoordinator
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +27,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     data.setdefault("identity_prefix", data.get("custom_prefix", DEFAULT_PREFIX))
     if data != entry.data:
         hass.config_entries.async_update_entry(entry, data=data)
+    config = {**entry.data, **entry.options}
+    coordinator = SonnenDataUpdateCoordinator(hass, entry, config)
+    # Fail here so HA retries the entire entry, rather than skipping sensor setup.
+    await coordinator.async_config_entry_first_refresh()
+    entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry
     await async_register_services(hass)
